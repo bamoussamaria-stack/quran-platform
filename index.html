@@ -143,13 +143,13 @@
                 </div>
             </div>
             <div class="countdown-card"><h2><i class="fas fa-hourglass-half"></i> العد التنازلي</h2><div class="countdown-timer" id="countdownTimer"><div class="countdown-item"><div class="countdown-number" id="daysLeft">--</div><div class="countdown-label">يوم</div></div><div class="countdown-item"><div class="countdown-number" id="hoursLeft">--</div><div class="countdown-label">ساعة</div></div><div class="countdown-item"><div class="countdown-number" id="minutesLeft">--</div><div class="countdown-label">دقيقة</div></div><div class="countdown-item"><div class="countdown-number" id="secondsLeft">--</div><div class="countdown-label">ثانية</div></div></div></div>
-            <div class="progress-section"><div><span>تقدم الرحلة</span><span id="progressPercent">0%</span></div><div class="progress-bar-container"><div class="progress-bar-fill" id="progressFill"></div></div></div>
+            <div class="progress-section"><div style="display:flex; justify-content:space-between;"><span>تقدم الرحلة</span><span id="progressPercent">0%</span></div><div class="progress-bar-container"><div class="progress-bar-fill" id="progressFill"></div></div></div>
             <div id="homeSchedule"></div>
         </div>
 
         <div id="companionPage" class="page">
             <div class="companion-container">
-                <h2><i class="fas fa-hand-holding-heart"></i> رفيقة الطريق</h2>
+                <h2 style="color:#6b21a5;"><i class="fas fa-hand-holding-heart"></i> رفيقة الطريق</h2>
                 <div id="pairStatus" style="background:white; border-radius:1rem; padding:1rem; margin:1rem 0;"></div>
                 <div class="messages-area" id="messagesList"></div>
                 <div style="margin-top:1rem;">
@@ -162,7 +162,7 @@
                     </div>
                     <div style="display:flex; gap:0.5rem;">
                         <input type="text" id="messageInput" class="send-input" placeholder="اكتبي رسالتك...">
-                        <button id="sendMsgBtn" style="background:#ec4899; color:white; border:none; border-radius:2rem; padding:0.5rem 1rem; cursor:pointer;">أرسلي</button>
+                        <button id="sendMsgBtn" class="send-btn" style="background:#ec4899; color:white; border:none; border-radius:2rem; padding:0.5rem 1rem; cursor:pointer;">أرسلي</button>
                     </div>
                 </div>
             </div>
@@ -195,7 +195,7 @@
                 <div style="overflow-x: auto;">
                     <table class="students-table" id="studentsTable">
                         <thead><tr><th>الاسم</th><th>البريد</th><th>المحطات</th><th>النقاط</th><th>👭 الرفيقة</th><th>إجراءات</th></tr></thead>
-                        <tbody id="studentsTableBody"><tr><td colspan="6">⏳ جاري تحميل البيانات...</td></tr></tbody>
+                        <tbody id="studentsTableBody"><tr><td colspan="6">⏳ جاري تحميل البيانات...⏳</tbody>
                     </table>
                 </div>
                 <button onclick="loadAllStudents()" style="margin-top:1rem; background:#7c3aed; color:white; border:none; padding:0.5rem 1rem; border-radius:0.5rem; cursor:pointer;"><i class="fas fa-sync-alt"></i> 🔄 تحديث من Google Sheets</button>
@@ -205,7 +205,7 @@
 </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzlmXsbKOY2vqxzUz2Z8hAbPOQAu7a_5Qt203SKyY-qFmoffgYyPCkDDQeAxIdb0cPs/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJ1t-DZBLZLwK2tkS8l8alna0NsuKwQoLFPw_1pFi_VY_f2RY9yGWO77--2h64vptq/exec";
     const TEACHER_PASSWORD = "admin1446";
     const GOOGLE_MEET_LINK = "https://meet.google.com/nki-xmmx-kfu";
 
@@ -231,28 +231,51 @@
     ];
 
     let currentUser = null;
+    let allStudents = [];
     let currentDailyChallenge = null;
     let wheelCanvas, ctx, segments = [], currentAngle = 0, spinning = false;
     let currentMsgType = "dua";
 
+    // حفظ بيانات المستخدمين في Local Storage
+    function saveAllUsersToLocal(users) {
+        localStorage.setItem('all_quran_users', JSON.stringify(users));
+    }
+
+    function getAllUsersFromLocal() {
+        const saved = localStorage.getItem('all_quran_users');
+        if(saved) return JSON.parse(saved);
+        return [];
+    }
+
     async function loadAllStudents() {
         const tbody = document.getElementById('studentsTableBody');
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">⏳ جاري التحميل...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">⏳ جاري التحميل...⏳</tbody>';
         try {
             const response = await fetch(SCRIPT_URL);
             const students = await response.json();
+            allStudents = students;
             if(!students || students.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">📭 لا توجد طالبات مسجلات بعد</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">📭 لا توجد طالبات مسجلات بعد</tbody>';
                 return;
             }
             let html = '';
             students.forEach(s => {
-                html += `<tr><td><strong>${s.name}</strong></td><td>${s.email}</td><td>${s.stations || 0}/5</td><td style="color:#6b21a5; font-weight:bold;">${s.points || 0}</td><td style="color:#7c3aed;">👭 ${s.companion || 'لا يوجد'}</td><td class="teacher-actions"><button class="give-points-btn" onclick="givePoints('${s.email}', '${s.name}', ${s.points || 0})">🎁 تشجيع</button><button class="delete-student-btn" onclick="deleteStudent('${s.email}', '${s.name}')">🗑️ حذف</button></td></tr>`;
+                html += `<tr>
+                    <td><strong>${s.name}</strong></td>
+                    <td>${s.email}</td>
+                    <td>${s.stations || 0}/5</td>
+                    <td style="color:#6b21a5; font-weight:bold;">${s.points || 0}</td>
+                    <td style="color:#7c3aed;">👭 ${s.companion || 'لا يوجد'}</td>
+                    <td class="teacher-actions">
+                        <button class="give-points-btn" onclick="givePoints('${s.email}', '${s.name}', ${s.points || 0})">🎁 تشجيع</button>
+                        <button class="delete-student-btn" onclick="deleteStudent('${s.email}', '${s.name}')">🗑️ حذف</button>
+                    </td>
+                </tr>`;
             });
             tbody.innerHTML = html;
             showToast(`✅ تم تحميل ${students.length} طالبة`, "success");
         } catch(e) { 
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">❌ خطأ في الاتصال</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">❌ خطأ في الاتصال</tbody>';
             console.error(e);
         }
     }
@@ -268,6 +291,15 @@
                 })
             });
         } catch(e) { console.error("خطأ في الحفظ:", e); }
+    }
+
+    async function updateCompanionInSheet(email, companionName) {
+        try {
+            await fetch(SCRIPT_URL, {
+                method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: "update_companion", email: email, companionName: companionName })
+            });
+        } catch(e) { console.error("خطأ في تحديث الرفيقة:", e); }
     }
 
     async function givePoints(email, name, currentPoints) {
@@ -290,22 +322,6 @@
         }
     }
 
-    async function updateCompanionBoth(email1, name1, email2, name2) {
-        try {
-            // تحديث الطالبة الأولى
-            await fetch(SCRIPT_URL, {
-                method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: "update_companion", email: email1, companionName: name2 })
-            });
-            // تحديث الطالبة الثانية
-            await fetch(SCRIPT_URL, {
-                method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: "update_companion", email: email2, companionName: name1 })
-            });
-            return true;
-        } catch(e) { console.error("خطأ في تحديث الرفيقة:", e); return false; }
-    }
-
     async function requestRandomCompanion() {
         if(currentUser?.isTeacher) {
             showToast("المعلمة لا يمكنها طلب رفيقة", "error");
@@ -321,6 +337,9 @@
             const response = await fetch(SCRIPT_URL);
             const allStudentsData = await response.json();
             
+            // جلب جميع المستخدمين من Local Storage أيضاً للتأكد من التحديث المتبادل
+            let allLocalUsers = getAllUsersFromLocal();
+            
             const availableStudents = allStudentsData.filter(s => 
                 s.email !== currentUser.email && 
                 (!s.companion || s.companion === "" || s.companion === "لا يوجد" || s.companion === "null") &&
@@ -335,32 +354,52 @@
             const randomIndex = Math.floor(Math.random() * availableStudents.length);
             const selectedCompanion = availableStudents[randomIndex];
             
-            // تحديث بيانات الطالبتين معاً في Google Sheets
-            const success = await updateCompanionBoth(currentUser.email, selectedCompanion.name, selectedCompanion.email, currentUser.name);
+            // تحديث الطالبة الحالية
+            currentUser.companionId = Date.now() + Math.random();
+            currentUser.companionName = selectedCompanion.name;
+            currentUser.companionEmail = selectedCompanion.email;
             
-            if(success) {
-                // تحديث بيانات المستخدم الحالي
-                currentUser.companionId = Date.now() + Math.random();
-                currentUser.companionName = selectedCompanion.name;
-                currentUser.companionEmail = selectedCompanion.email;
-                
-                // إضافة رسالة ترحيب
-                currentUser.messages = currentUser.messages || [];
-                currentUser.messages.push({
-                    id: Date.now(), from: 'me', text: `السلام عليكم رفيقة عرفة! 🕊️ سعيدة برحلتنا معًا إلى الله 🤍`,
+            // إضافة رسالة ترحيب
+            currentUser.messages = currentUser.messages || [];
+            currentUser.messages.push({
+                id: Date.now(), from: 'me', text: `السلام عليكم رفيقة عرفة! 🕊️ سعيدة برحلتنا معًا إلى الله 🤍`,
+                type: "kind", date: new Date().toISOString()
+            });
+            
+            // تحديث بيانات الطالبتين في Google Sheets
+            await updateCompanionInSheet(currentUser.email, selectedCompanion.name);
+            await updateCompanionInSheet(selectedCompanion.email, currentUser.name);
+            
+            // حفظ في Local Storage
+            saveCurrentUser();
+            
+            // تحديث المستخدم الآخر في Local Storage إذا كان موجوداً
+            let otherUserIndex = -1;
+            for(let i = 0; i < allLocalUsers.length; i++) {
+                if(allLocalUsers[i].email === selectedCompanion.email) {
+                    otherUserIndex = i;
+                    break;
+                }
+            }
+            
+            if(otherUserIndex !== -1) {
+                allLocalUsers[otherUserIndex].companionId = currentUser.id;
+                allLocalUsers[otherUserIndex].companionName = currentUser.name;
+                allLocalUsers[otherUserIndex].companionEmail = currentUser.email;
+                if(!allLocalUsers[otherUserIndex].messages) allLocalUsers[otherUserIndex].messages = [];
+                allLocalUsers[otherUserIndex].messages.push({
+                    id: Date.now(), from: 'companion', text: `السلام عليكم رفيقة عرفة! 🕊️ سعيدة برحلتنا معًا إلى الله 🤍`,
                     type: "kind", date: new Date().toISOString()
                 });
-                
-                saveCurrentUser();
-                await saveStudentToSheet(currentUser);
-                renderCompanionUI();
-                showToast(`🎉 أصبحت ${selectedCompanion.name} رفيقتك إلى عرفة! 🎉`, "success");
-                
-                if(document.getElementById('teacherPanelPage').classList.contains('active')) {
-                    loadAllStudents();
-                }
-            } else {
-                showToast("حدث خطأ في تكوين الرفيقة", "error");
+                saveAllUsersToLocal(allLocalUsers);
+            }
+            
+            renderCompanionUI();
+            showToast(`🎉 أصبحت ${selectedCompanion.name} رفيقتك إلى عرفة! 🎉`, "success");
+            showToast(`✨ سيتم إعلام ${selectedCompanion.name} برفقتها لكِ عند تسجيل الدخول ✨`, "info");
+            
+            if(document.getElementById('teacherPanelPage').classList.contains('active')) {
+                loadAllStudents();
             }
         } catch(error) {
             console.error("خطأ:", error);
@@ -469,7 +508,7 @@
         let html = `<div class="schedule-table-wrapper"><table class="schedule-table"><thead><tr><th>اليوم</th><th>التاريخ الهجري</th><th>التاريخ الميلادي</th><th>المعلمة</th><th>موضوع الحلقة</th><th>التوقيت</th><th>بدء الجلسة</th><th>تسجيل الحضور</th></tr></thead><tbody>`;
         scheduleData.forEach((s, idx) => {
             let attended = currentUser?.attended?.includes(idx);
-            html += `<tr>
+            html += `<td>
                 <td style="font-weight:bold; color:#7c3aed;">✨ ${s.day}</td>
                 <td>${s.hijriDate}</td>
                 <td>${s.gregorianDate}</td>
@@ -478,7 +517,7 @@
                 <td>🕰️ ${s.time}</td>
                 <td><button onclick="startGoogleMeet('${s.meetLink}')" class="start-meet-btn">بدء الجلسة</button></td>
                 <td><button onclick="markAttendance(${idx})" class="meet-btn-small ${attended ? 'disabled' : ''}" ${attended ? 'disabled' : ''}>${attended ? '✅ تم الحضور' : 'تسجيل حضور (+5)'}</button></td>
-             </tr>`;
+            </tr>`;
         });
         html += `</tbody></table></div>`;
         document.getElementById('fullSchedule').innerHTML = html;
@@ -635,24 +674,40 @@
         document.getElementById('displayUserName').innerHTML = currentUser.name || '';
     }
 
-    function saveCurrentUser() { localStorage.setItem('currentUser', JSON.stringify(currentUser)); }
+    function saveCurrentUser() { 
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        // أيضاً حفظ في قائمة جميع المستخدمين
+        let allUsers = getAllUsersFromLocal();
+        let found = false;
+        for(let i = 0; i < allUsers.length; i++) {
+            if(allUsers[i].email === currentUser.email) {
+                allUsers[i] = currentUser;
+                found = true;
+                break;
+            }
+        }
+        if(!found) allUsers.push(currentUser);
+        saveAllUsersToLocal(allUsers);
+    }
 
     function studentLogin() {
         let name = document.getElementById('studentName').value.trim();
         let email = document.getElementById('studentEmail').value.trim();
         if(!name || !email) { showToast("املأ البيانات", "error"); return; }
-        let saved = localStorage.getItem('currentUser');
-        if(saved) {
-            let parsed = JSON.parse(saved);
-            if(parsed.email === email && !parsed.isTeacher) {
-                currentUser = parsed;
-                stations.forEach(s => { s.completed = currentUser.completedStations?.includes(s.id) || false; });
-                updateStationAvailability();
-                finalizeLogin();
-                saveStudentToSheet(currentUser);
-                return;
-            }
+        
+        // البحث في Local Storage أولاً
+        let allUsers = getAllUsersFromLocal();
+        let existingUser = allUsers.find(u => u.email === email && !u.isTeacher);
+        
+        if(existingUser) {
+            currentUser = existingUser;
+            stations.forEach(s => { s.completed = currentUser.completedStations?.includes(s.id) || false; });
+            updateStationAvailability();
+            finalizeLogin();
+            saveStudentToSheet(currentUser);
+            return;
         }
+        
         currentUser = {
             id: Date.now(), name: name, email: email, points: 0, companionPoints: 0,
             completedStations: [], completedChallenges: [], lastChallenge: null,
@@ -677,7 +732,7 @@
     }
 
     function finalizeLogin() {
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        saveCurrentUser();
         document.getElementById('loginOverlay').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
         if(currentUser.isTeacher) {
