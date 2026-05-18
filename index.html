@@ -92,8 +92,8 @@
         .points-icon { width: 40px; height: 40px; background: #a855f7; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; }
         .refresh-chat-btn { background: #7c3aed; color: white; border: none; border-radius: 2rem; padding: 0.3rem 1rem; cursor: pointer; }
         .chat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem; }
-        .join-btn { background: #10b981; color: white; border: none; border-radius: 2rem; padding: 0.5rem 1rem; cursor: pointer; margin-top: 0.5rem; }
-        .room-code-display { font-size: 1.8rem; font-weight: bold; color: #7c3aed; direction: ltr; background: white; padding: 0.5rem; border-radius: 1rem; margin: 0.5rem 0; letter-spacing: 2px; }
+        .room-code-display { font-size: 2rem; font-weight: bold; color: #7c3aed; direction: ltr; background: white; padding: 0.5rem; border-radius: 1rem; margin: 0.5rem 0; letter-spacing: 3px; font-family: monospace; }
+        .waiting-message { background: #fef3c7; border-radius: 1rem; padding: 1rem; text-align: center; margin-top: 1rem; }
         @media (max-width: 768px) { .schedule-table { font-size: 0.7rem; } .points-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -162,12 +162,10 @@
                         <button class="msg-type-btn" data-type="achievement">⭐ إنجاز</button>
                         <button class="msg-type-btn" data-type="kind">💕 رسالة لطيفة</button>
                     </div>
-                    <div style="display:flex; gap:0.5rem;">
-                        <button id="refreshChatBtn" class="refresh-chat-btn"><i class="fas fa-sync-alt"></i> تحديث</button>
-                    </div>
+                    <button id="refreshChatBtn" class="refresh-chat-btn"><i class="fas fa-sync-alt"></i> تحديث</button>
                 </div>
                 <div class="messages-area" id="messagesList">
-                    <div style="padding:1rem; text-align:center; color:#a0aec0;">✨ انتظري رفيقتك ✨</div>
+                    <div style="padding:1rem; text-align:center; color:#a0aec0;">✨ انتظر رفيقتك ✨</div>
                 </div>
                 <div style="margin-top:1rem; display:flex; gap:0.5rem;">
                     <input type="text" id="messageInput" class="send-input" placeholder="اكتبي رسالتك...">
@@ -210,7 +208,6 @@
 </div>
 
 <script>
-    // Use localStorage with room code - works across devices when code is shared
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJ1t-DZBLZLwK2tkS8l8alna0NsuKwQoLFPw_1pFi_VY_f2RY9yGWO77--2h64vptq/exec";
     const TEACHER_PASSWORD = "admin1446";
     const GOOGLE_MEET_LINK = "https://meet.google.com/nki-xmmx-kfu";
@@ -262,12 +259,16 @@
         const messages = loadMessages();
         messages.push(message);
         localStorage.setItem(key, JSON.stringify(messages));
+        // Also update companion's last message time
+        if (currentUser.roomCode) {
+            localStorage.setItem(`room_lastmsg_${currentUser.roomCode}`, Date.now());
+        }
     }
 
     function refreshMessagesDisplay() {
         if (!currentUser || currentUser.isTeacher) return;
         if (!currentUser.roomCode) {
-            document.getElementById('messagesList').innerHTML = '<div style="padding:1rem; text-align:center;">💕 لا توجد رسائل بعد</div>';
+            document.getElementById('messagesList').innerHTML = '<div style="padding:1rem; text-align:center;">💕 ليس لديك رفيقة بعد</div>';
             return;
         }
         const messages = loadMessages();
@@ -302,7 +303,7 @@
         let text = document.getElementById('messageInput')?.value.trim();
         if (!text) { showToast("اكتبي رسالتك أولاً", "error"); return; }
         if (!currentUser.roomCode) {
-            showToast("ليس لديك رفيقة! اطلبي رفيقة أولاً", "error");
+            showToast("ليس لديك رفيقة! قومي بإنشاء غرفة أو الانضمام إلى غرفة", "error");
             return;
         }
         
@@ -322,7 +323,7 @@
         showToast(`✨ أرسلتِ رسالة! ✨`, "success");
     }
 
-    // Create a new room (Student A)
+    // Create a new room (Student A - creates code for partner)
     function createRoom() {
         if (currentUser?.isTeacher) { showToast("المعلمة لا يمكنها إنشاء غرفة", "error"); return; }
         if (currentUser.roomCode) {
@@ -332,23 +333,29 @@
         // Generate random 6-character room code
         const newRoomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
         currentUser.roomCode = newRoomCode;
-        currentUser.companionName = "تنتظر الانضمام";
+        currentUser.roomCreator = true;
+        currentUser.companionName = "في انتظار الانضمام";
         saveCurrentUser();
         renderCompanionUI();
-        showToast(`🎨 تم إنشاء غرفة! الكود: ${newRoomCode}`, "success");
+        showToast(`🎨 تم إنشاء الغرفة! الكود: ${newRoomCode}`, "success");
         // Copy to clipboard automatically
         navigator.clipboard.writeText(newRoomCode);
         showToast("✅ تم نسخ الكود! أرسليه لرفيقتك", "success");
     }
 
-    // Join existing room (Student B)
+    // Join existing room (Student B - uses code from partner)
     function joinRoom() {
         if (currentUser?.isTeacher) { showToast("المعلمة لا يمكنها الانضمام", "error"); return; }
+        if (currentUser.roomCode) {
+            showToast(`لديك غرفة بالفعل!`, "error");
+            return;
+        }
         const code = prompt("🔑 أدخلي كود الغرفة الذي أرسلته رفيقتك:");
         if (code && code.trim()) {
-            const companionName = prompt("📝 أدخلي اسم رفيقتك:");
+            const companionName = prompt("📝 أدخلي اسم رفيقتك (التي أنشأت الغرفة):");
             if (companionName) {
                 currentUser.roomCode = code.trim().toUpperCase();
+                currentUser.roomCreator = false;
                 currentUser.companionName = companionName;
                 saveCurrentUser();
                 renderCompanionUI();
@@ -364,10 +371,14 @@
             showToast("ليس لديك غرفة للمغادرة", "error");
             return;
         }
-        if (confirm("هل أنت متأكدة من مغادرة الغرفة؟ سيتم حذف المحادثة")) {
-            const key = getMessageKey();
-            if (key) localStorage.removeItem(key);
+        if (confirm("هل أنت متأكدة من مغادرة الغرفة؟")) {
+            // Only delete messages if user is the creator
+            if (currentUser.roomCreator) {
+                const key = getMessageKey();
+                if (key) localStorage.removeItem(key);
+            }
             currentUser.roomCode = null;
+            currentUser.roomCreator = null;
             currentUser.companionName = null;
             saveCurrentUser();
             renderCompanionUI();
@@ -388,19 +399,24 @@
                     <p style="margin: 0.5rem 0;">🕊️ ليس لديك رفيقة بعد</p>
                     <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; margin-top:1rem;">
                         <button onclick="createRoom()" style="background:#8b5cf6; color:white; border:none; border-radius:2rem; padding:0.5rem 1.5rem; cursor:pointer; font-size:1rem;">
-                            🎨 إنشاء غرفة جديدة
+                            🎨 إنشاء غرفة (أنا أبدأ)
                         </button>
                         <button onclick="joinRoom()" style="background:#10b981; color:white; border:none; border-radius:2rem; padding:0.5rem 1.5rem; cursor:pointer; font-size:1rem;">
-                            🔑 الانضمام إلى غرفة
+                            🔑 الانضمام إلى غرفة (لدي كود)
                         </button>
                     </div>
                     <p style="font-size:0.7rem; color:#718096; margin-top:1rem;">
-                        ✨ أنشئي غرفة جديدة وأرسلي الكود لرفيقتك، أو انضمي بكود من رفيقتك
+                        ✨ إذا كنتِ البادئة: اضغطي "إنشاء غرفة" وأرسلي الكود لرفيقتك<br>
+                        ✨ إذا رفيقتك أنشأت الغرفة: اطلبي منها الكود واضغطي "الانضمام إلى غرفة"
                     </p>
                 </div>
             `;
             return;
         }
+        
+        const isCreator = currentUser.roomCreator;
+        const statusText = isCreator ? "في انتظار انضمام رفيقتك..." : `مرتبطة برفيقتك: ${currentUser.companionName}`;
+        const statusIcon = isCreator ? "⏳" : "✅";
         
         pairDiv.innerHTML = `
             <div style="background:linear-gradient(135deg,#f3e8ff,#e9d5ff); border-radius:1rem; padding:1rem; text-align:center;">
@@ -408,8 +424,16 @@
                 <p style="margin: 0.5rem 0;">🌸 غرفة المحادثة 🌸</p>
                 <div class="room-code-display">${currentUser.roomCode}</div>
                 <p style="margin: 0.5rem 0;">
-                    <strong>رفيقتك:</strong> ${currentUser.companionName || 'في انتظار الانضمام'}
+                    <strong>${statusIcon} الحالة:</strong> ${statusText}
                 </p>
+                ${isCreator ? `
+                    <div class="waiting-message">
+                        <i class="fas fa-share-alt"></i> شاركي هذا الكود مع رفيقتك<br>
+                        <small>سيرسل لها الكود ثم تدخله لتتصل بك</small>
+                    </div>
+                ` : `
+                    <p><strong>رفيقتك:</strong> ${currentUser.companionName}</p>
+                `}
                 <div style="display:flex; gap:0.5rem; justify-content:center; flex-wrap:wrap; margin-top:0.5rem;">
                     <button onclick="navigator.clipboard.writeText('${currentUser.roomCode}')" style="background:#7c3aed; color:white; border:none; border-radius:2rem; padding:0.3rem 1rem; cursor:pointer;">
                         📋 نسخ الكود
@@ -418,9 +442,6 @@
                         🚪 مغادرة الغرفة
                     </button>
                 </div>
-                <p style="font-size:0.7rem; color:#718096; margin-top:0.5rem;">
-                    🤝 أرسلي الكود لرفيقتها لتتمكنا من التواصل
-                </p>
             </div>
         `;
     }
@@ -434,22 +455,42 @@
             allStudents = students;
             let html = '';
             (students || []).forEach(s => {
-                html += `<tr><td>${s.name}</td><td>${s.email}</td><td>${s.stations || 0}/5</td><td>${s.points || 0}</td><td>${s.companion || 'لا يوجد'}</td><td><button class="give-points-btn" onclick="givePoints('${s.email}')">🎁 تشجيع</button></td></tr>`;
+                html += `<tr>
+                    <td><strong>${s.name}</strong></td>
+                    <td>${s.email}</td>
+                    <td>${s.stations || 0}/5</td>
+                    <td style="color:#6b21a5; font-weight:bold;">${s.points || 0}</td>
+                    <td>${s.companion || 'لا يوجد'}</td>
+                    <td><button class="give-points-btn" onclick="givePoints('${s.email}')">🎁 تشجيع</button></td>
+                </tr>`;
             });
             tbody.innerHTML = html || '<tr><td colspan="6">لا توجد طالبات</td></tr>';
         } catch(e) { tbody.innerHTML = '<tr><td colspan="6">خطأ في التحميل</td></tr>'; }
     }
 
     async function givePoints(email) {
-        let points = prompt("أضيفي نقاط (5-15):", "10");
+        let points = prompt("أضيفي نقاط تشجيعية (5-15):", "10");
         if(points) {
-            await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "addPoints", email: email, points: parseInt(points) }) });
-            showToast(`✨ +${points} نقطة`, "success");
+            points = parseInt(points);
+            if(points >= 5 && points <= 15) {
+                await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "addPoints", email: email, points: points }) });
+                showToast(`✨ +${points} نقطة`, "success");
+                setTimeout(loadAllStudents, 1000);
+            } else {
+                showToast("⚠️ النقاط يجب أن تكون بين 5 و 15", "error");
+            }
+        }
+    }
+
+    async function deleteStudent(email, name) {
+        if(confirm(`⚠️ هل أنت متأكدة من حذف ${name}؟`)) {
+            await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "delete", email: email }) });
+            showToast(`✅ تم حذف ${name}`, "success");
             setTimeout(loadAllStudents, 1000);
         }
     }
 
-    function startGoogleMeet(meetLink) { window.open(meetLink, '_blank'); showToast("📹 جاري فتح الجلسة", "success"); }
+    function startGoogleMeet(meetLink) { window.open(meetLink, '_blank'); showToast("📹 جاري فتح جلسة Google Meet", "success"); }
     
     function addPoints(amount, reason) { 
         if(currentUser?.isTeacher) return; 
@@ -464,7 +505,14 @@
         try {
             await fetch(SCRIPT_URL, {
                 method: 'POST', mode: 'no-cors',
-                body: JSON.stringify({ action: "save", name: currentUser.name, email: currentUser.email, points: currentUser.points || 0, stations: currentUser.completedStations?.length || 0, companion: currentUser.roomCode || "" })
+                body: JSON.stringify({ 
+                    action: "save", 
+                    name: currentUser.name, 
+                    email: currentUser.email, 
+                    points: currentUser.points || 0, 
+                    stations: currentUser.completedStations?.length || 0, 
+                    companion: currentUser.companionName || "" 
+                })
             });
         } catch(e) {}
     }
@@ -479,10 +527,19 @@
     }
     
     function renderSchedule() { 
-        let html = `<div class="schedule-table-wrapper"><table class="schedule-table"><thead><tr><th>اليوم</th><th>التاريخ</th><th>المعلمة</th><th>الموضوع</th><th>التوقيت</th><th>الجلسة</th><th>الحضور</th></thead><tbody>`;
+        let html = `<div class="schedule-table-wrapper"><table class="schedule-table"><thead><tr><th>اليوم</th><th>التاريخ الهجري</th><th>التاريخ الميلادي</th><th>المعلمة</th><th>الموضوع</th><th>التوقيت</th><th>الجلسة</th><th>الحضور</th></thead><tbody>`;
         scheduleData.forEach((s, idx) => { 
             let attended = currentUser?.attended?.includes(idx); 
-            html += `<tr><td>${s.day}</td><td>${s.hijriDate}</td><td>${s.teacher}</td><td>${s.topic}</td><td>${s.time}</td><td><button onclick="startGoogleMeet('${s.meetLink}')" class="start-meet-btn">بدء الجلسة</button></td><td><button onclick="markAttendance(${idx})" class="meet-btn-small">${attended ? '✅ تم' : 'تسجيل (+5)'}</button></td></tr>`;
+            html += `<tr>
+                <td style="font-weight:bold; color:#7c3aed;">✨ ${s.day}</td>
+                <td>${s.hijriDate}</td>
+                <td>${s.gregorianDate}</td>
+                <td>${s.teacher}</td>
+                <td style="text-align:right;">🌿 ${s.topic}</td>
+                <td>🕰️ ${s.time}</td>
+                <td><button onclick="startGoogleMeet('${s.meetLink}')" class="start-meet-btn">بدء الجلسة</button></td>
+                <td><button onclick="markAttendance(${idx})" class="meet-btn-small">${attended ? '✅ تم' : 'تسجيل (+5)'}</button></td>
+            </tr>`;
         }); 
         html += `</tbody></table></div>`; 
         document.getElementById('fullSchedule').innerHTML = html; 
@@ -496,9 +553,9 @@
     function completeDailyChallenge() { if(!currentDailyChallenge) return; if(currentUser?.isTeacher) return; let today=new Date().toDateString(); if(currentUser.lastChallenge===today) return showToast("أنجزتِ اليوم!","error"); currentUser.completedChallenges = currentUser.completedChallenges || []; currentUser.completedChallenges.push(currentDailyChallenge); currentUser.lastChallenge = today; addPoints(10, "تحدي يومي"); document.getElementById('challengeResult').style.display='none'; currentDailyChallenge=null; }
     function completeStationLogic(id) { if(currentUser?.isTeacher) return; let s = stations.find(s => s.id === id); if(!s.available || s.completed) return; s.completed = true; currentUser.completedStations = currentUser.completedStations || []; if(!currentUser.completedStations.includes(id)) currentUser.completedStations.push(id); addPoints(25, `إكمال ${s.title}`); updateStationAvailability(); renderStations(); renderBadges(); saveStudentToSheet(); }
     function updateStationAvailability() { stations[0].available = !stations[0].completed; for(let i=1; i<stations.length; i++) stations[i].available = stations[i-1].completed && !stations[i].completed; }
-    function renderStations() { let cont = document.getElementById('stationsList'); if(!cont) return; if(currentUser?.isTeacher) { cont.innerHTML = '<div style="padding:2rem; text-align:center;">👩‍🏫 للمعلمات</div>'; return; } cont.innerHTML = stations.map(s => `<div class="station-card ${s.completed ? 'completed' : (s.available ? 'available' : 'locked')}" onclick="${!s.available || s.completed ? '' : 'completeStationLogic('+s.id+')'}"><div><div style="font-size:1.5rem;">${s.icon}</div><div><strong>${s.title}</strong><br><small>${s.badge}</small></div></div><button class="complete-btn" ${!s.available || s.completed ? 'disabled' : ''}>${s.completed ? '✅ تم' : '✨ إكمال'}</button></div>`).join(''); }
-    function renderBadges() { let cont = document.getElementById('badgesGrid'); if(!cont) return; if(currentUser?.isTeacher) { cont.innerHTML = '<div style="padding:2rem; text-align:center;">👩‍🏫 الأوسمة</div>'; return; } let badges = [...stations.map(s => ({ name: s.badge, icon: s.icon, earned: s.completed })), { name: "وسام الرفيقة", icon: "💕", earned: !!(currentUser.roomCode) }]; cont.innerHTML = badges.map(b => `<div class="badge-card ${b.earned ? 'earned' : ''}"><div class="badge-icon">${b.icon}</div><div>${b.name}</div>${b.earned ? '✅' : '🔒'}</div>`).join(''); }
-    function updateDashboard() { if(!currentUser) return; if(currentUser.isTeacher) { document.getElementById('displayUserName').innerHTML = currentUser.name + ' (معلمة)'; return; } let compCount = stations.filter(s => s.completed).length; document.getElementById('completedStations').innerHTML = compCount; document.getElementById('completedChallenges').innerHTML = currentUser.completedChallenges?.length || 0; document.getElementById('totalPointsDisplay').innerHTML = currentUser.points || 0; document.getElementById('progressFill').style.width = (compCount/5*100)+'%'; document.getElementById('progressPercent').innerHTML = Math.round(compCount/5*100)+'%'; document.getElementById('displayUserName').innerHTML = currentUser.name || ''; }
+    function renderStations() { let cont = document.getElementById('stationsList'); if(!cont) return; if(currentUser?.isTeacher) { cont.innerHTML = '<div style="padding:2rem; text-align:center;">👩‍🏫 هذا القسم للطالبات</div>'; return; } cont.innerHTML = stations.map(s => `<div class="station-card ${s.completed ? 'completed' : (s.available ? 'available' : 'locked')}" onclick="${!s.available || s.completed ? '' : 'completeStationLogic('+s.id+')'}"><div><div style="font-size:1.5rem;">${s.icon}</div><div><strong>${s.title}</strong><br><small>${s.badge}</small></div></div><button class="complete-btn" ${!s.available || s.completed ? 'disabled' : ''}>${s.completed ? '✅ تم' : '✨ إكمال'}</button></div>`).join(''); }
+    function renderBadges() { let cont = document.getElementById('badgesGrid'); if(!cont) return; if(currentUser?.isTeacher) { cont.innerHTML = '<div style="padding:2rem; text-align:center;">👩‍🏫 الأوسمة للطالبات</div>'; return; } let badges = [...stations.map(s => ({ name: s.badge, icon: s.icon, earned: s.completed })), { name: "وسام الرفيقة", icon: "💕", earned: !!(currentUser.roomCode) }]; cont.innerHTML = badges.map(b => `<div class="badge-card ${b.earned ? 'earned' : ''}"><div class="badge-icon">${b.icon}</div><div>${b.name}</div>${b.earned ? '✅' : '🔒'}</div>`).join(''); }
+    function updateDashboard() { if(!currentUser) return; if(currentUser.isTeacher) { document.getElementById('displayUserName').innerHTML = currentUser.name + ' (معلمة)'; return; } let compCount = stations.filter(s => s.completed).length; document.getElementById('completedStations').innerHTML = compCount; document.getElementById('completedChallenges').innerHTML = currentUser.completedChallenges?.length || 0; document.getElementById('companionPoints').innerHTML = currentUser.companionPoints || 0; document.getElementById('totalPointsDisplay').innerHTML = currentUser.points || 0; document.getElementById('progressFill').style.width = (compCount/5*100)+'%'; document.getElementById('progressPercent').innerHTML = Math.round(compCount/5*100)+'%'; document.getElementById('displayUserName').innerHTML = currentUser.name || ''; }
     function saveCurrentUser() { localStorage.setItem('currentUser', JSON.stringify(currentUser)); }
     
     function studentLogin() { 
@@ -516,7 +573,21 @@
                 return; 
             } 
         } 
-        currentUser = { id: Date.now(), name: name, email: email, points: 0, completedStations: [], completedChallenges: [], lastChallenge: null, roomCode: null, companionName: null, attended: [], isTeacher: false }; 
+        currentUser = { 
+            id: Date.now(), 
+            name: name, 
+            email: email, 
+            points: 0, 
+            companionPoints: 0,
+            completedStations: [], 
+            completedChallenges: [], 
+            lastChallenge: null, 
+            roomCode: null, 
+            roomCreator: null,
+            companionName: null, 
+            attended: [], 
+            isTeacher: false 
+        }; 
         stations.forEach(s => { s.completed = false; s.available = (s.id === 0); }); 
         updateStationAvailability(); 
         finalizeLogin(); 
@@ -525,7 +596,7 @@
     }
     
     function showTeacherLogin() { 
-        let pwd = prompt("كلمة سر المعلمة:"); 
+        let pwd = prompt("🔐 أدخلي كلمة سر المعلمة:"); 
         if(pwd === TEACHER_PASSWORD) { 
             currentUser = { id: Date.now(), name: "المعلمة", email: "teacher@quran.com", isTeacher: true }; 
             finalizeLogin(); 
@@ -602,7 +673,7 @@
     document.getElementById('sendMsgBtn')?.addEventListener('click', sendMessage);
     document.getElementById('refreshChatBtn')?.addEventListener('click', refreshMessagesDisplay);
     
-    // Make functions global for buttons
+    // Make functions global
     window.createRoom = createRoom;
     window.joinRoom = joinRoom;
     window.leaveRoom = leaveRoom;
@@ -615,8 +686,8 @@
     window.startGoogleMeet = startGoogleMeet;
     window.markAttendance = markAttendance;
     window.givePoints = givePoints;
-    window.loadAllStudents = loadAllStudents;
     window.deleteStudent = deleteStudent;
+    window.loadAllStudents = loadAllStudents;
     
     function restoreSession() { 
         let saved = localStorage.getItem('currentUser'); 
