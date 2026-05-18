@@ -195,12 +195,12 @@
             <div class="teacher-dashboard">
                 <h2><i class="fas fa-chalkboard-teacher"></i> لوحة تحكم المعلمة</h2>
                 <div style="margin-bottom:1rem;">
-                    <button onclick="loadAllStudents()" class="refresh-students-btn"><i class="fas fa-sync-alt"></i> تحديث الطالبات</button>
+                    <button onclick="loadAllStudentsFromSheet()" class="refresh-students-btn"><i class="fas fa-sync-alt"></i> تحديث الطالبات من Google Sheets</button>
                 </div>
                 <div style="overflow-x: auto;">
                     <table class="students-table" id="studentsTable">
                         <thead><tr><th>الاسم</th><th>البريد</th><th>المحطات</th><th>النقاط</th><th>الرفيقة</th><th>إجراءات</th></tr></thead>
-                        <tbody id="studentsTableBody"><tr><td colspan="6" style="text-align:center;">⏳ جاري التحميل...⏳</tbody>
+                        <tbody id="studentsTableBody"><tr><td colspan="6" style="text-align:center;">⏳ جاري التحميل من Google Sheets...</tbody>
                     </table>
                 </div>
             </div>
@@ -209,6 +209,7 @@
 </div>
 
 <script>
+    // IMPORTANT: Replace this URL with your Google Apps Script Web App URL
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzxeCmpQAlSDOohLEbHMHsq4ZBom2RRIVk4MH3kctqhMCdc8FkcY9S2R_ts1zp2BYI-/exec";
     const TEACHER_PASSWORD = "admin1446";
     const GOOGLE_MEET_LINK = "https://meet.google.com/nki-xmmx-kfu";
@@ -241,7 +242,86 @@
     let currentMsgType = "dua";
     let messageInterval = null;
 
-    // ============= MESSAGES STORED IN GOOGLE SHEETS (Cross-device) =============
+    // ============= TEACHER FUNCTIONS - LOADS FROM GOOGLE SHEETS =============
+    
+    async function loadAllStudentsFromSheet() {
+        const tbody = document.getElementById('studentsTableBody');
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">⏳ جاري التحميل من Google Sheets...</td></tr>';
+        
+        try {
+            const response = await fetch(SCRIPT_URL);
+            const students = await response.json();
+            allStudents = students;
+            
+            if (!students || students.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">📭 لا توجد طالبات مسجلات في Google Sheets</td></tr>';
+                return;
+            }
+            
+            let html = '';
+            students.forEach(s => {
+                html += `
+                    <tr>
+                        <td><strong>${s.name || '?'}</strong></td>
+                        <td>${s.email || '?'}</td>
+                        <td>${s.stations || 0}/5</td>
+                        <td style="color:#6b21a5; font-weight:bold;">${s.points || 0}</td>
+                        <td>${s.companion || 'لا يوجد'}</td>
+                        <td>
+                            <button class="delete-student-btn" onclick="deleteStudentFromSheet('${s.email}', '${s.name}')">🗑️ حذف</button>
+                            <button class="give-points-btn" onclick="givePointsToStudent('${s.email}', '${s.name}')">🎁 نقاط</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+            showToast(`✅ تم تحميل ${students.length} طالبة من Google Sheets`, "success");
+        } catch(e) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">❌ خطأ في الاتصال بـ Google Sheets</td></tr>';
+            console.error(e);
+            showToast("❌ فشل الاتصال بـ Google Sheets", "error");
+        }
+    }
+
+    async function givePointsToStudent(email, name) {
+        const points = prompt(`⭐ أضيفي نقاط للطالبة ${name} (5-15):`, "10");
+        if (points) {
+            const p = parseInt(points);
+            if (p >= 5 && p <= 15) {
+                try {
+                    await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        body: JSON.stringify({ action: "addPoints", email: email, points: p })
+                    });
+                    showToast(`✨ +${p} نقطة للطالبة ${name}`, "success");
+                    setTimeout(loadAllStudentsFromSheet, 1000);
+                } catch(e) {
+                    showToast("❌ فشل في إضافة النقاط", "error");
+                }
+            } else {
+                showToast("⚠️ النقاط يجب أن تكون بين 5 و 15", "error");
+            }
+        }
+    }
+
+    async function deleteStudentFromSheet(email, name) {
+        if (confirm(`⚠️ هل أنت متأكدة من حذف ${name} من Google Sheets؟`)) {
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({ action: "delete", email: email })
+                });
+                showToast(`✅ تم حذف ${name} من Google Sheets`, "success");
+                setTimeout(loadAllStudentsFromSheet, 1000);
+            } catch(e) {
+                showToast("❌ فشل في حذف الطالبة", "error");
+            }
+        }
+    }
+
+    // ============= MESSAGES STORED IN GOOGLE SHEETS =============
     
     async function saveMessageToSheet(roomCode, message) {
         try {
@@ -421,84 +501,46 @@
         `;
     }
 
-    // Teacher functions
-    async function loadAllStudents() {
-        const tbody = document.getElementById('studentsTableBody');
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">⏳ جاري التحميل...</tbody>';
-        try {
-            const response = await fetch(SCRIPT_URL);
-            const students = await response.json();
-            allStudents = students;
-            if (!students || students.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">📭 لا توجد طالبات مسجلات</tbody>';
-                return;
-            }
-            let html = '';
-            students.forEach(s => {
-                html += `<tr>
-                    <td><strong>${s.name || '?'}</strong></td>
-                    <td>${s.email || '?'}</td>
-                    <td>${s.stations || 0}/5</td>
-                    <td style="color:#6b21a5; font-weight:bold;">${s.points || 0}</td>
-                    <td>${s.companion || 'لا يوجد'}</td>
-                    <td>
-                        <button class="delete-student-btn" onclick="deleteStudent('${s.email}', '${s.name}')">🗑️ حذف</button>
-                        <button class="give-points-btn" onclick="givePoints('${s.email}', '${s.name}')">🎁 نقاط</button>
-                    </td>
-                </tr>`;
-            });
-            tbody.innerHTML = html;
-            showToast(`✅ تم تحميل ${students.length} طالبة`, "success");
-        } catch(e) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">❌ خطأ في الاتصال</tbody>';
-            console.error(e);
-        }
-    }
-
-    async function givePoints(email, name) {
-        const points = prompt(`⭐ أضيفي نقاط للطالبة ${name} (5-15):`, "10");
-        if (points) {
-            const p = parseInt(points);
-            if (p >= 5 && p <= 15) {
-                await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    body: JSON.stringify({ action: "addPoints", email: email, points: p })
-                });
-                showToast(`✨ +${p} نقطة للطالبة ${name}`, "success");
-                setTimeout(loadAllStudents, 1000);
-            } else {
-                showToast("⚠️ النقاط بين 5 و 15", "error");
-            }
-        }
-    }
-
-    async function deleteStudent(email, name) {
-        if (confirm(`⚠️ هل أنت متأكدة من حذف ${name}؟`)) {
-            await fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify({ action: "delete", email: email })
-            });
-            showToast(`✅ تم حذف ${name}`, "success");
-            setTimeout(loadAllStudents, 1000);
-        }
-    }
-
+    // Student data functions
     async function saveStudentToSheet() {
         try {
             await fetch(SCRIPT_URL, {
-                method: 'POST', mode: 'no-cors',
+                method: 'POST', 
+                mode: 'no-cors',
                 body: JSON.stringify({
                     action: "save",
                     name: currentUser.name,
                     email: currentUser.email,
                     points: currentUser.points || 0,
                     stations: currentUser.completedStations?.length || 0,
+                    challenges: currentUser.completedChallenges?.length || 0,
                     companion: currentUser.companionName || currentUser.roomCode || ""
                 })
             });
-        } catch(e) {}
+        } catch(e) {
+            console.error("Error saving student:", e);
+        }
+    }
+
+    async function loadStudentFromSheet(email) {
+        try {
+            const response = await fetch(SCRIPT_URL);
+            const students = await response.json();
+            const student = students.find(s => s.email === email);
+            if (student) {
+                currentUser.points = student.points || 0;
+                currentUser.completedStations = [];
+                // We need to reconstruct stations from saved data
+                for(let i = 0; i < (student.stations || 0); i++) {
+                    if(stations[i]) stations[i].completed = true;
+                }
+                updateStationAvailability();
+                saveCurrentUser();
+                updateDashboard();
+            }
+        } catch(e) {
+            console.error("Error loading student:", e);
+        }
     }
 
     function addPoints(amount, reason) {
@@ -510,6 +552,7 @@
         saveStudentToSheet();
     }
 
+    // Core functions
     function startGoogleMeet() { window.open(GOOGLE_MEET_LINK, '_blank'); showToast("📹 جاري فتح جلسة Google Meet", "success"); }
     
     function markAttendance(idx) {
@@ -593,7 +636,7 @@
         if (pwd === TEACHER_PASSWORD) {
             currentUser = { id: Date.now(), name: "المعلمة", email: "teacher@quran.com", isTeacher: true };
             finalizeLogin();
-            loadAllStudents();
+            loadAllStudentsFromSheet();
         } else { showToast("❌ كلمة السر غير صحيحة!", "error"); }
     }
     
@@ -622,7 +665,6 @@
         renderBadges();
         initWheel();
         if (!currentUser.isTeacher) updateCompanionUI();
-        if (currentUser.isTeacher) loadAllStudents();
     }
     
     function logoutUser() {
@@ -652,7 +694,7 @@
             if (pg === 'badges') renderBadges();
             if (pg === 'schedule') renderSchedule();
             if (pg === 'companion' && !currentUser?.isTeacher) { updateCompanionUI(); displayMessagesFromSheet(); }
-            if (pg === 'teacherPanel' && currentUser?.isTeacher) loadAllStudents();
+            if (pg === 'teacherPanel' && currentUser?.isTeacher) loadAllStudentsFromSheet();
         });
     });
     
@@ -679,9 +721,9 @@
     window.completeDailyChallenge = completeDailyChallenge;
     window.startGoogleMeet = startGoogleMeet;
     window.markAttendance = markAttendance;
-    window.givePoints = givePoints;
-    window.deleteStudent = deleteStudent;
-    window.loadAllStudents = loadAllStudents;
+    window.givePointsToStudent = givePointsToStudent;
+    window.deleteStudentFromSheet = deleteStudentFromSheet;
+    window.loadAllStudentsFromSheet = loadAllStudentsFromSheet;
     
     function restoreSession() {
         const saved = localStorage.getItem('currentUser');
@@ -692,7 +734,7 @@
                 document.getElementById('mainApp').style.display = 'block';
                 document.querySelectorAll('.teacher-only').forEach(el => el.style.display = 'flex');
                 document.querySelectorAll('.student-only').forEach(el => el.style.display = 'none');
-                updateDashboard(); renderStations(); renderSchedule(); renderBadges(); initWheel(); loadAllStudents();
+                updateDashboard(); renderStations(); renderSchedule(); renderBadges(); initWheel(); loadAllStudentsFromSheet();
             } else {
                 stations.forEach(s => { s.completed = currentUser.completedStations?.includes(s.id) || false; });
                 updateStationAvailability();
