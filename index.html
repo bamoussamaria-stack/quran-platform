@@ -209,7 +209,7 @@
 </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJ1t-DZBLZLwK2tkS8l8alna0NsuKwQoLFPw_1pFi_VY_f2RY9yGWO77--2h64vptq/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwI-lvL7UQzkGmL4bxmANS0lKhSCsxk0TZ-MpT-JNFLW7Jd7WAO7cdFVbkPb5YFFu0I/exec";
     const TEACHER_PASSWORD = "admin1446";
     const GOOGLE_MEET_LINK = "https://meet.google.com/nki-xmmx-kfu";
 
@@ -241,28 +241,65 @@
     let currentMsgType = "dua";
     let messageInterval = null;
 
-    // Message functions using localStorage with room code
-    function getMessageKey() {
-        if (!currentUser || !currentUser.roomCode) return null;
-        return `chat_${currentUser.roomCode}`;
+    // ============= MESSAGES STORED IN GOOGLE SHEETS (Cross-device) =============
+    
+    async function saveMessageToSheet(roomCode, message) {
+        try {
+            await fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: "save_message",
+                    roomCode: roomCode,
+                    id: message.id,
+                    fromEmail: message.fromEmail,
+                    fromName: message.fromName,
+                    text: message.text,
+                    timestamp: message.timestamp
+                })
+            });
+            return true;
+        } catch(e) {
+            console.error("Error saving message:", e);
+            return false;
+        }
     }
 
-    function loadMessages() {
-        const key = getMessageKey();
-        if (!key) return [];
-        const stored = localStorage.getItem(key);
-        return stored ? JSON.parse(stored) : [];
+    async function loadMessagesFromSheet(roomCode) {
+        try {
+            const url = `${SCRIPT_URL}?action=get_messages&roomCode=${roomCode}`;
+            const response = await fetch(url);
+            const messages = await response.json();
+            return Array.isArray(messages) ? messages : [];
+        } catch(e) {
+            console.error("Error loading messages:", e);
+            return [];
+        }
     }
 
-    function saveMessage(message) {
-        const key = getMessageKey();
-        if (!key) return;
-        const messages = loadMessages();
-        messages.push(message);
-        localStorage.setItem(key, JSON.stringify(messages));
+    async function sendMessageToSheet() {
+        if (currentUser?.isTeacher) { showToast("المعلمة لا يمكنها إرسال رسائل", "error"); return; }
+        const text = document.getElementById('messageInput')?.value.trim();
+        if (!text) { showToast("اكتبي رسالتك أولاً", "error"); return; }
+        if (!currentUser.roomCode) { showToast("ليس لديك رفيقة! أنشئي غرفة أو انضمي", "error"); return; }
+        
+        const message = {
+            id: Date.now(),
+            fromEmail: currentUser.email,
+            fromName: currentUser.name,
+            text: text,
+            timestamp: new Date().toISOString()
+        };
+        
+        await saveMessageToSheet(currentUser.roomCode, message);
+        addPoints(2, "إرسال رسالة");
+        document.getElementById('messageInput').value = '';
+        await displayMessagesFromSheet();
+        showToast("✨ تم إرسال الرسالة!", "success");
     }
 
-    function displayMessages() {
+    async function displayMessagesFromSheet() {
         if (!currentUser || currentUser.isTeacher) return;
         const msgsDiv = document.getElementById('messagesList');
         if (!msgsDiv) return;
@@ -272,7 +309,7 @@
             return;
         }
         
-        const messages = loadMessages();
+        const messages = await loadMessagesFromSheet(currentUser.roomCode);
         if (messages.length === 0) {
             msgsDiv.innerHTML = '<div style="padding:1rem; text-align:center;">💕 لا توجد رسائل بعد. اكتبي رسالتك!</div>';
             return;
@@ -298,27 +335,8 @@
         return div.innerHTML;
     }
 
-    function sendMessage() {
-        if (currentUser?.isTeacher) { showToast("المعلمة لا يمكنها إرسال رسائل", "error"); return; }
-        const text = document.getElementById('messageInput')?.value.trim();
-        if (!text) { showToast("اكتبي رسالتك أولاً", "error"); return; }
-        if (!currentUser.roomCode) { showToast("ليس لديك رفيقة! أنشئي غرفة أو انضمي", "error"); return; }
-        
-        saveMessage({
-            id: Date.now(),
-            fromEmail: currentUser.email,
-            fromName: currentUser.name,
-            text: text,
-            timestamp: new Date().toISOString()
-        });
-        
-        addPoints(2, "إرسال رسالة");
-        document.getElementById('messageInput').value = '';
-        displayMessages();
-        showToast("✨ تم إرسال الرسالة!", "success");
-    }
-
-    function createRoom() {
+    // Room management
+    async function createRoom() {
         if (currentUser?.isTeacher) { showToast("المعلمة لا يمكنها إنشاء غرفة", "error"); return; }
         if (currentUser.roomCode) { showToast(`لديك غرفة بالفعل! الكود: ${currentUser.roomCode}`, "info"); return; }
         
@@ -327,11 +345,12 @@
         currentUser.isCreator = true;
         saveCurrentUser();
         updateCompanionUI();
+        await saveStudentToSheet();
         navigator.clipboard.writeText(code);
         showToast(`✅ تم إنشاء الغرفة! الكود: ${code} (تم النسخ)`, "success");
     }
 
-    function joinRoom() {
+    async function joinRoom() {
         if (currentUser?.isTeacher) { showToast("المعلمة لا يمكنها الانضمام", "error"); return; }
         if (currentUser.roomCode) { showToast("لديك غرفة بالفعل!", "error"); return; }
         
@@ -345,7 +364,9 @@
         currentUser.isCreator = false;
         currentUser.companionName = partnerName;
         saveCurrentUser();
+        await saveStudentToSheet();
         updateCompanionUI();
+        await displayMessagesFromSheet();
         showToast("✅ تم الانضمام إلى الغرفة!", "success");
     }
 
@@ -357,7 +378,7 @@
             currentUser.companionName = null;
             saveCurrentUser();
             updateCompanionUI();
-            displayMessages();
+            displayMessagesFromSheet();
             showToast("✅ تم مغادرة الغرفة", "success");
         }
     }
@@ -382,7 +403,7 @@
         }
         
         const status = currentUser.isCreator ? 
-            `<div class="waiting-message" style="background:#fef3c7; padding:0.5rem; border-radius:0.5rem; margin-top:0.5rem;">
+            `<div style="background:#fef3c7; padding:0.5rem; border-radius:0.5rem; margin-top:0.5rem;">
                 <i class="fas fa-share-alt"></i> أرسلي هذا الكود لرفيقتك: <strong style="font-size:1.2rem;">${currentUser.roomCode}</strong>
             </div>` : 
             `<p>رفيقتك: <strong>${currentUser.companionName || '...'}</strong></p>`;
@@ -474,7 +495,7 @@
                     email: currentUser.email,
                     points: currentUser.points || 0,
                     stations: currentUser.completedStations?.length || 0,
-                    companion: currentUser.companionName || ""
+                    companion: currentUser.companionName || currentUser.roomCode || ""
                 })
             });
         } catch(e) {}
@@ -576,7 +597,7 @@
         } else { showToast("❌ كلمة السر غير صحيحة!", "error"); }
     }
     
-    function finalizeLogin() {
+    async function finalizeLogin() {
         saveCurrentUser();
         document.getElementById('loginOverlay').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
@@ -587,13 +608,13 @@
         } else {
             document.querySelectorAll('.teacher-only').forEach(el => el.style.display = 'none');
             document.querySelectorAll('.student-only').forEach(el => el.style.display = 'flex');
-            displayMessages();
+            await displayMessagesFromSheet();
             if (messageInterval) clearInterval(messageInterval);
-            messageInterval = setInterval(() => {
+            messageInterval = setInterval(async () => {
                 if (currentUser && !currentUser.isTeacher && currentUser.roomCode) {
-                    displayMessages();
+                    await displayMessagesFromSheet();
                 }
-            }, 2000);
+            }, 3000);
         }
         updateDashboard();
         renderStations();
@@ -630,7 +651,7 @@
             if (pg === 'stations') renderStations();
             if (pg === 'badges') renderBadges();
             if (pg === 'schedule') renderSchedule();
-            if (pg === 'companion' && !currentUser?.isTeacher) { updateCompanionUI(); displayMessages(); }
+            if (pg === 'companion' && !currentUser?.isTeacher) { updateCompanionUI(); displayMessagesFromSheet(); }
             if (pg === 'teacherPanel' && currentUser?.isTeacher) loadAllStudents();
         });
     });
@@ -644,14 +665,14 @@
     });
     
     document.querySelector('.msg-type-btn[data-type="dua"]')?.classList.add('active');
-    document.getElementById('sendMsgBtn')?.addEventListener('click', sendMessage);
-    document.getElementById('refreshChatBtn')?.addEventListener('click', displayMessages);
+    document.getElementById('sendMsgBtn')?.addEventListener('click', sendMessageToSheet);
+    document.getElementById('refreshChatBtn')?.addEventListener('click', displayMessagesFromSheet);
     
     // Make functions global
     window.createRoom = createRoom;
     window.joinRoom = joinRoom;
     window.leaveRoom = leaveRoom;
-    window.sendMessage = sendMessage;
+    window.sendMessage = sendMessageToSheet;
     window.completeStationLogic = completeStationLogic;
     window.spinWheel = spinWheel;
     window.openSurprise = openSurprise;
@@ -679,11 +700,14 @@
                 document.getElementById('mainApp').style.display = 'block';
                 document.querySelectorAll('.teacher-only').forEach(el => el.style.display = 'none');
                 document.querySelectorAll('.student-only').forEach(el => el.style.display = 'flex');
-                updateDashboard(); renderStations(); renderSchedule(); renderBadges(); initWheel(); updateCompanionUI(); displayMessages();
+                updateDashboard(); renderStations(); renderSchedule(); renderBadges(); initWheel(); updateCompanionUI(); 
+                displayMessagesFromSheet();
                 if (messageInterval) clearInterval(messageInterval);
-                messageInterval = setInterval(() => {
-                    if (currentUser && !currentUser.isTeacher && currentUser.roomCode) displayMessages();
-                }, 2000);
+                messageInterval = setInterval(async () => {
+                    if (currentUser && !currentUser.isTeacher && currentUser.roomCode) {
+                        await displayMessagesFromSheet();
+                    }
+                }, 3000);
             }
         }
     }
