@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* نفس الأنماط السابقة - تم اختصارها للحفاظ على المساحة، يمكنك إضافة الأنماط الكاملة لاحقاً */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
@@ -246,7 +247,7 @@
             <div class="teacher-dashboard">
                 <h2><i class="fas fa-chalkboard-teacher"></i> لوحة تحكم المعلمة</h2>
                 <div class="sheet-note" style="background: #10b981;">
-                    <i class="fas fa-chart-line"></i> 📊 جميع الطالبات مع رفيقاتهن تظهر هنا - يمكنك الحذف والإضافة
+                    <i class="fas fa-chart-line"></i> 📊 جميع الطالبات مع رفيقاتهن تظهر هنا - البيانات محفوظة في Google Sheets
                 </div>
                 <div style="overflow-x: auto;">
                     <table class="students-table" id="studentsTable">
@@ -275,10 +276,8 @@
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJ1t-DZBLZLwK2tkS8l8alna0NsuKwQoLFPw_1pFi_VY_f2RY9yGWO77--2h64vptq/exec";
     const TEACHER_PASSWORD = "admin1446";
     const GOOGLE_MEET_LINK = "https://meet.google.com/nki-xmmx-kfu";
-    const SHEET_ID = "1_NnuHS_YCoz_Pypet3TCVM1RSYBiH7zf2kTWam-mEdc";
-    const API_KEY = "AIzaSyDpa61C-YTaC9FUcF2iS9O5AHP6GVIAS5w";
     
-    // قائمة التحديات (مؤكدة وخالية من أي أخطاء)
+    // قائمة التحديات
     const challengesList = [
         "🤲 تصدقي بصدقة خفية اليوم",
         "📿 أكثري من التكبير (100 مرة)",
@@ -287,9 +286,7 @@
         "📖 راجعي وردك من القرآن اليوم",
         "🌟 قومي الليل ولو بركعتين",
         "💝 ساعدي شخصاً محتاجاً اليوم",
-        "📝 اكتبي 10 أشياء تشكرين الله عليها",
-        "🌙 صومي اليوم لله",
-        "🤲 ادعي لجميع المسلمات بظهر الغيب"
+        "📝 اكتبي 10 أشياء تشكرين الله عليها"
     ];
     
     let stations = [
@@ -301,36 +298,152 @@
     ];
     
     const scheduleData = [
-        { day: "الإثنين", hijriDate: "1 ذي الحجة", gregorianDate: "18 مايو", teacher: "أم أسيد", topic: "كيف نستقبل أحب الأيام إلى الله؟", time: "20:30", meetLink: GOOGLE_MEET_LINK },
-        { day: "الثلاثاء", hijriDate: "2 ذي الحجة", gregorianDate: "19 مايو", teacher: "سمية", topic: "رحلة الحج ومناسكه", time: "بعد العشاء", meetLink: GOOGLE_MEET_LINK },
-        { day: "الأربعاء", hijriDate: "3 ذي الحجة", gregorianDate: "20 مايو", teacher: "رانيا", topic: "مجاهدة النفس", time: "بعد العشاء", meetLink: GOOGLE_MEET_LINK },
-        { day: "الخميس", hijriDate: "4 ذي الحجة", gregorianDate: "21 مايو", teacher: "ميسون", topic: "إبراهيم أمة وحده", time: "بعد العشاء", meetLink: GOOGLE_MEET_LINK },
-        { day: "الجمعة", hijriDate: "5 ذي الحجة", gregorianDate: "22 مايو", teacher: "ياسمين", topic: "هاجر، حين كان السعي عبادة", time: "بعد العشاء", meetLink: GOOGLE_MEET_LINK },
-        { day: "السبت", hijriDate: "6 ذي الحجة", gregorianDate: "23 مايو", teacher: "---", topic: "سيتم الإعلان", time: "---", meetLink: null },
-        { day: "الأحد", hijriDate: "7 ذي الحجة", gregorianDate: "24 مايو", teacher: "أم بلال", topic: "القرآن ومواسم الطاعات", time: "بعد العشاء", meetLink: GOOGLE_MEET_LINK },
-        { day: "الإثنين", hijriDate: "8 ذي الحجة", gregorianDate: "25 مايو", teacher: "جهينة", topic: "يوم عرفة", time: "ليلاً", meetLink: GOOGLE_MEET_LINK }
+        { day: "الإثنين", date: "18 مايو", teacher: "أم أسيد", topic: "كيف نستقبل أحب الأيام إلى الله؟", time: "20:30", meetLink: GOOGLE_MEET_LINK },
+        { day: "الثلاثاء", date: "19 مايو", teacher: "سمية", topic: "رحلة الحج ومناسكه", time: "بعد العشاء", meetLink: GOOGLE_MEET_LINK },
+        { day: "الأربعاء", date: "20 مايو", teacher: "رانيا", topic: "مجاهدة النفس", time: "بعد العشاء", meetLink: GOOGLE_MEET_LINK },
+        { day: "الخميس", date: "21 مايو", teacher: "ميسون", topic: "إبراهيم أمة وحده", time: "بعد العشاء", meetLink: GOOGLE_MEET_LINK },
+        { day: "الجمعة", date: "22 مايو", teacher: "ياسمين", topic: "هاجر، حين كان السعي عبادة", time: "بعد العشاء", meetLink: GOOGLE_MEET_LINK },
+        { day: "الأحد", date: "24 مايو", teacher: "أم بلال", topic: "القرآن ومواسم الطاعات", time: "بعد العشاء", meetLink: GOOGLE_MEET_LINK },
+        { day: "الإثنين", date: "25 مايو", teacher: "جهينة", topic: "يوم عرفة", time: "ليلاً", meetLink: GOOGLE_MEET_LINK }
     ];
     
-    let currentUser = null, allUsers = [];
+    let currentUser = null;
     let currentDailyChallenge = null;
     let wheelCanvas, ctx, segments = [], currentAngle = 0, spinning = false;
     let currentMsgType = "dua";
     
-    // ========== دوال العجلة المُحسّنة ==========
+    // ========== الوظائف الأساسية ==========
+    async function loadAllStudentsFromSheets() {
+        const tbody = document.getElementById('studentsTableBody');
+        tbody.innerHTML = '⽀<td colspan="7" style="text-align:center;">⏳ جاري تحميل البيانات...</td></tr>';
+        
+        try {
+            const response = await fetch(SCRIPT_URL + "?action=getAll");
+            const students = await response.json();
+            
+            if (!students || students.length === 0) {
+                tbody.innerHTML = '⽀<td colspan="7" style="text-align:center;">📭 لا توجد طالبات مسجلات بعد...</td></tr>';
+                return;
+            }
+            
+            let html = '';
+            students.forEach(s => {
+                html += `<tr>
+                    <td><strong>${s.name}</strong></td>
+                    <td>${s.email}</td>
+                    <td>${s.stations || 0}/5</td>
+                    <td><span style="font-size:1.2rem; font-weight:bold; color:#6b21a5;">${s.points || 0}</span></td>
+                    <td style="color:#7c3aed; font-weight:bold;">👭 ${s.companion || 'لا يوجد'}</td>
+                    <td>${s.lastUpdate || '---'}</td>
+                    <td class="teacher-actions">
+                        <button class="give-points-btn" onclick="givePointsToStudent('${s.email}', '${s.name}', ${s.points || 0})"><i class="fas fa-gift"></i> تشجيع</button>
+                        <button class="delete-student-btn" onclick="deleteStudentFromSheet('${s.email}', '${s.name}')"><i class="fas fa-trash-alt"></i> حذف</button>
+                    </td>
+                </table>`;
+            });
+            tbody.innerHTML = html;
+            showToast(`✅ تم تحميل ${students.length} طالبة`, "success");
+        } catch(error) {
+            console.error(error);
+            tbody.innerHTML = '⽀<td colspan="7" style="text-align:center;">❌ حدث خطأ في تحميل البيانات. تأكدي من إعدادات Google Sheets.⽀</td></td>';
+        }
+    }
+    
+    async function givePointsToStudent(email, name, currentPoints) {
+        let points = prompt(`⭐ أضيفي نقاط تشجيعية للطالبة ${name}\n(5-15 نقطة)`, "10");
+        if (points) {
+            points = parseInt(points);
+            if (points >= 5 && points <= 15) {
+                try {
+                    await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: "addPoints", email: email, points: points })
+                    });
+                    showToast(`✨ تم إضافة ${points} نقطة للطالبة ${name} ✨`, "success");
+                    setTimeout(() => loadAllStudentsFromSheets(), 1500);
+                } catch(e) { showToast("حدث خطأ", "error"); }
+            } else { showToast("يجب أن تكون النقاط بين 5 و 15", "error"); }
+        }
+    }
+    
+    async function deleteStudentFromSheet(email, name) {
+        if (confirm(`⚠️ هل أنتِ متأكدة من حذف الطالبة ${name} نهائياً؟\nسيتم حذف جميع بياناتها ولا يمكن استعادتها!`)) {
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: "delete", email: email })
+                });
+                showToast(`✅ تم حذف الطالبة ${name} نهائياً`, "success");
+                setTimeout(() => loadAllStudentsFromSheets(), 1500);
+            } catch(e) { showToast("حدث خطأ في الحذف", "error"); }
+        }
+    }
+    
+    async function syncToGoogleSheet(student) {
+        try {
+            await fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: "save",
+                    name: student.name,
+                    email: student.email,
+                    points: student.points || 0,
+                    stations: student.completedStations?.length || 0,
+                    challenges: student.completedChallenges?.length || 0,
+                    companion: student.companionName || ""
+                })
+            });
+        } catch(error) { console.error("خطأ:", error); }
+    }
+    
+    function addPoints(amount, reason) { 
+        if (currentUser?.isTeacher) return; 
+        currentUser.points = (currentUser.points || 0) + amount; 
+        localStorage.setItem('quran_current_user', JSON.stringify(currentUser));
+        updateDashboard(); 
+        showToast(`+${amount} نقطة (${reason})`, "success");
+        syncToGoogleSheet(currentUser);
+    }
+    
+    function markAttendance(idx) { 
+        if (currentUser?.isTeacher) return; 
+        if (currentUser.attended?.includes(idx)) { showToast("سبق تسجيل الحضور!", "error"); return; } 
+        currentUser.attended = currentUser.attended || []; 
+        currentUser.attended.push(idx); 
+        addPoints(5, "حضور حصة"); 
+        renderSchedule(); 
+    }
+    
+    function renderSchedule() {
+        let html = `<div class="schedule-table-wrapper"><table class="schedule-table"><thead><tr><th>اليوم</th><th>التاريخ</th><th>المعلمة</th><th>الموضوع</th><th>التوقيت</th><th>الرابط</th><th>الحضور</th></tr></thead><tbody>`;
+        scheduleData.forEach((s, idx) => {
+            let attended = currentUser?.attended?.includes(idx);
+            html += `<tr><td style="font-weight:bold; color:#7c3aed;">✨ ${s.day}</td><td>${s.date}</td><td>${s.teacher}</td><td style="text-align:right;">🌿 ${s.topic}</td><td>🕰️ ${s.time}</td>
+                <td>${s.meetLink ? `<a href="${s.meetLink}" target="_blank" class="meet-btn-small">حضور</a>` : '⏳ قريباً'}</td>
+                <td>${s.meetLink ? `<button onclick="markAttendance(${idx})" class="meet-btn-small ${attended ? 'disabled' : ''}" ${attended ? 'disabled' : ''}>${attended ? '✅ تم' : 'تسجيل (+5)'}</button>` : '---'}</td>
+            </td>`;
+        });
+        html += `</tbody></table></div>`;
+        document.getElementById('fullSchedule').innerHTML = html;
+        document.getElementById('homeSchedule').innerHTML = html;
+    }
+    
     function initWheel() {
         wheelCanvas = document.getElementById('wheelCanvas');
-        if (!wheelCanvas) {
-            console.error("لم يتم العثور على عنصر canvas");
-            return;
-        }
+        if (!wheelCanvas) return;
         ctx = wheelCanvas.getContext('2d');
-        // نأخذ أول 8 تحديات فقط لتناسب العجلة
         segments = challengesList.slice(0, 8);
         drawWheel();
     }
-
+    
     function drawWheel() {
-        if (!ctx || !wheelCanvas) return;
+        if (!ctx) return;
         const size = 400, cx = 200, cy = 200, radius = 185, step = Math.PI * 2 / segments.length;
         ctx.clearRect(0, 0, size, size);
         const colors = ['#8b5cf6', '#a78bfa', '#c4b5fd', '#ddd6fe', '#ede9fe', '#f3e8ff', '#faf5ff', '#ffffff'];
@@ -346,8 +459,7 @@
             ctx.font = 'bold 12px Cairo';
             ctx.translate(cx, cy);
             ctx.rotate(start + step / 2);
-            let shortText = segments[i].substring(0, 7);
-            ctx.fillText(shortText, radius / 2.3, 5);
+            ctx.fillText(segments[i].substring(0, 7), radius / 2.3, 5);
             ctx.restore();
         }
         ctx.beginPath();
@@ -357,12 +469,9 @@
         ctx.fillStyle = '#e53e3e';
         ctx.fill();
     }
-
+    
     function spinWheel() {
-        if (spinning) {
-            showToast("العجلة تدور حالياً، انتظري قليلاً", "error");
-            return;
-        }
+        if (spinning) return;
         spinning = true;
         const resultDiv = document.getElementById('challengeResult');
         resultDiv.style.display = 'none';
@@ -384,13 +493,7 @@
                 const pointerAngle = -Math.PI / 2;
                 let angleDiff = (pointerAngle - currentAngle + Math.PI * 2) % (Math.PI * 2);
                 let selectedIndex = Math.floor(angleDiff / stepAngle) % segments.length;
-                // التأكد من عدم ظهور undefined
-                if (segments[selectedIndex] && segments[selectedIndex] !== "undefined") {
-                    currentDailyChallenge = segments[selectedIndex];
-                } else {
-                    // في حالة حدوث خطأ نختار أول تحدي
-                    currentDailyChallenge = challengesList[0];
-                }
+                currentDailyChallenge = segments[selectedIndex] || challengesList[0];
                 document.getElementById('challengeDisplay').innerHTML = currentDailyChallenge;
                 resultDiv.style.display = 'block';
                 spinning = false;
@@ -399,7 +502,7 @@
         }
         animate();
     }
-
+    
     function openSurprise() {
         const randomIndex = Math.floor(Math.random() * challengesList.length);
         currentDailyChallenge = challengesList[randomIndex];
@@ -409,293 +512,282 @@
     }
     
     function completeDailyChallenge() {
-        if (!currentDailyChallenge) {
-            showToast("لا يوجد تحدي نشط. أخرجي العجلة أولاً!", "error");
-            return;
-        }
-        if (currentUser?.isTeacher) {
-            showToast("المعلمة لا يمكنها أداء التحديات", "error");
-            return;
-        }
+        if (!currentDailyChallenge) return showToast("لا يوجد تحدي", "error");
+        if (currentUser?.isTeacher) return showToast("للمعلمات فقط", "error");
         const today = new Date().toDateString();
-        if (currentUser.lastChallengeDate === today) {
-            showToast("لقد أنجزتِ تحدياً اليوم! عودي غداً لتحدي جديد", "error");
-            return;
-        }
-        // تسجيل التحدي
+        if (currentUser.lastChallenge === today) return showToast("أنجزتِ اليوم!", "error");
         currentUser.completedChallenges = currentUser.completedChallenges || [];
-        currentUser.completedChallenges.push({ challenge: currentDailyChallenge, date: today, points: 10 });
-        currentUser.lastChallengeDate = today;
-        // إضافة النقاط
+        currentUser.completedChallenges.push(currentDailyChallenge);
+        currentUser.lastChallenge = today;
         addPoints(10, "تحدي يومي");
-        // إخفاء النتيجة
         document.getElementById('challengeResult').style.display = 'none';
         currentDailyChallenge = null;
-        showToast("🎉 ماشاء الله! أحسنتِ! حصلتِ على 10 نقاط", "success");
     }
     
-    async function loadAllStudentsFromSheets() {
-        const tbody = document.getElementById('studentsTableBody');
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">⏳ جاري تحميل البيانات...</td></tr>';
-        try {
-            const range = "Sheet1!A:H";
-            const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}?key=${API_KEY}`;
-            const response = await fetch(url);
-            const data = await response.json();
-            const rows = data.values || [];
-            if (rows.length <= 1) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">📭 لا توجد طالبات مسجلات بعد...</td></tr>';
-                return;
-            }
-            let html = '';
-            for (let i = 1; i < rows.length; i++) {
-                const row = rows[i];
-                const name = row[0] || '---';
-                const email = row[1] || '---';
-                const points = row[2] || '0';
-                const stationsCount = row[3] || '0';
-                const companionName = (row[5] && row[5] !== "null" && row[5] !== "") ? row[5] : 'لا يوجد';
-                const lastUpdate = row[6] || '---';
-                html += `<tr>
-                    <td><strong>${name}</strong></td>
-                    <td>${email}</td>
-                    <td>${stationsCount}/5</td>
-                    <td><span style="font-size:1.2rem; font-weight:bold; color:#6b21a5;">${points}</span></td>
-                    <td style="color:#7c3aed; font-weight:bold;">👭 ${companionName}</td>
-                    <td>${lastUpdate}</td>
-                    <td class="teacher-actions">
-                        <button class="give-points-btn" onclick="givePointsToStudent('${email}', '${name}', ${points})"><i class="fas fa-gift"></i> تشجيع</button>
-                        <button class="delete-student-btn" onclick="deleteStudentFromSheet('${email}', '${name}')"><i class="fas fa-trash-alt"></i> حذف</button>
-                    </td>
-                </tr>`;
-            }
-            tbody.innerHTML = html;
-            showToast(`✅ تم تحميل ${rows.length - 1} طالبة`, "success");
-        } catch(error) {
-            console.error(error);
-            tbody.innerHTML = '<td><td colspan="7" style="text-align:center;">❌ حدث خطأ في تحميل البيانات.</td></tr>';
+    function initCompanion() { if (currentUser?.isTeacher) return; renderCompanionUI(); }
+    function renderCompanionUI() {
+        if (currentUser?.isTeacher) return;
+        let pairDiv = document.getElementById('pairStatus');
+        let msgsDiv = document.getElementById('messagesList');
+        if (!pairDiv) return;
+        if (!currentUser.companionName) {
+            pairDiv.innerHTML = '🕊️ ليس لديك رفيقة. اضغطي "طلب رفيقة"';
+            if (msgsDiv) msgsDiv.innerHTML = '<div style="padding:1rem;">✨ ابدئي بطلب رفيقة ✨</div>';
+            return;
+        }
+        pairDiv.innerHTML = `🌸 رفيقتك: <strong style="color:#7c3aed;">${currentUser.companionName}</strong> 🌸`;
+        let msgs = currentUser.messages || [];
+        msgs.sort((a, b) => new Date(b.date) - new Date(a.date));
+        if (msgsDiv) {
+            if (msgs.length === 0) msgsDiv.innerHTML = '<div style="padding:1rem;">💕 لا توجد رسائل بعد</div>';
+            else msgsDiv.innerHTML = msgs.map(m => `<div class="message-item"><strong>${m.from === 'me' ? 'أنتِ' : 'الرفيقة'}</strong><br>${m.text}<div style="font-size:0.7rem;">${new Date(m.date).toLocaleString()}</div></div>`).join('');
         }
     }
     
-    async function givePointsToStudent(email, name, currentPoints) {
-        let points = prompt(`⭐ أضيفي نقاط تشجيعية للطالبة ${name}\n(5-15 نقطة)`, "10");
-        if (points) {
-            points = parseInt(points);
-            if (points >= 5 && points <= 15) {
-                try {
-                    const newPoints = (currentPoints || 0) + points;
-                    await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email: email, name: name, points: newPoints, action: "update_points" })
-                    });
-                    showToast(`✨ تم إضافة ${points} نقطة للطالبة ${name} ✨`, "success");
-                    setTimeout(() => loadAllStudentsFromSheets(), 1500);
-                } catch(e) { showToast("حدث خطأ", "error"); }
-            } else { showToast("يجب أن تكون النقاط بين 5 و 15", "error"); }
+    function requestCompanion() {
+        if (currentUser?.isTeacher) return;
+        let name = prompt("أدخلي اسم رفيقتك:", "");
+        if (name && name.trim()) {
+            currentUser.companionName = name.trim();
+            currentUser.companionId = Date.now();
+            saveCurrentUser();
+            renderCompanionUI();
+            syncToGoogleSheet(currentUser);
+            showToast(`✨ أصبحت ${name} رفيقتك! ✨`, "success");
         }
     }
     
-    async function deleteStudentFromSheet(email, name) {
-        if (confirm(`⚠️ هل أنتِ متأكدة من حذف الطالبة ${name} نهائياً؟\nسيتم حذف جميع بياناتها ولا يمكن استعادتها!`)) {
-            try {
-                await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: email, name: name, action: "delete" })
-                });
-                showToast(`✅ تم حذف الطالبة ${name} نهائياً`, "success");
-                setTimeout(() => loadAllStudentsFromSheets(), 1500);
-            } catch(e) { showToast("حدث خطأ في الحذف", "error"); }
-        }
+    function sendMessage() {
+        if (currentUser?.isTeacher) return;
+        let text = document.getElementById('messageInput')?.value.trim();
+        if (!text) return showToast("اكتبي رسالة", "error");
+        if (!currentUser.companionName) return showToast("ليس لديك رفيقة!", "error");
+        currentUser.messages = currentUser.messages || [];
+        currentUser.messages.push({ from: 'me', text: text, date: new Date().toISOString(), type: currentMsgType });
+        addPoints(2, "إرسال رسالة");
+        document.getElementById('messageInput').value = '';
+        renderCompanionUI();
+        syncToGoogleSheet(currentUser);
+        showToast("تم الإرسال! +2 نقطة", "success");
     }
     
-    async function syncCompanionToSheet(studentEmail, companionName) {
-        try {
-            await fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: studentEmail, companionName: companionName, action: "update_companion" })
-            });
-        } catch(e) { console.error("خطأ في تحديث الرفيقة:", e); }
-    }
-    
-    async function syncToGoogleSheet(student) {
-        try {
-            await fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: student.name,
-                    email: student.email,
-                    points: student.points || 0,
-                    completedStations: (student.completedStations?.length || 0).toString(),
-                    completedChallenges: (student.completedChallenges?.length || 0).toString(),
-                    companionName: student.companionName || "",
-                    action: "add"
-                })
-            });
-        } catch(error) { console.error("خطأ:", error); }
-    }
-    
-    function addPoints(amount, reason) { 
-        if (currentUser?.isTeacher) return; 
-        currentUser.points = (currentUser.points || 0) + amount; 
-        saveAllData(); 
-        updateDashboard(); 
-        showToast(`+${amount} نقطة (${reason})`, "success");
+    function completeStationLogic(id) {
+        if (currentUser?.isTeacher) return;
+        let s = stations.find(s => s.id === id);
+        if (!s.available || s.completed) return;
+        s.completed = true;
+        currentUser.completedStations = currentUser.completedStations || [];
+        if (!currentUser.completedStations.includes(id)) currentUser.completedStations.push(id);
+        addPoints(25, `إكمال ${s.title}`);
+        updateStationAvailability();
+        renderStations();
+        renderBadges();
         syncToGoogleSheet(currentUser);
     }
     
-    function markAttendance(idx) { 
-        if (currentUser?.isTeacher) return; 
-        if (currentUser.attendedSessions?.includes(idx)) { showToast("سبق تسجيل الحضور!", "error"); return; } 
-        currentUser.attendedSessions = currentUser.attendedSessions || []; 
-        currentUser.attendedSessions.push(idx); 
-        addPoints(5, "حضور حصة"); 
-        renderSchedule(); 
+    function updateStationAvailability() {
+        stations[0].available = !stations[0].completed;
+        for (let i = 1; i < stations.length; i++) stations[i].available = stations[i-1].completed && !stations[i].completed;
     }
     
-    function renderSchedule() {
-        let html = `<div class="schedule-table-wrapper"><table class="schedule-table"><thead><tr><th>اليوم</th><th>التاريخ</th><th>المعلمة</th><th>الموضوع</th><th>التوقيت</th><th>الرابط</th><th>الحضور</th></tr></thead><tbody>`;
-        scheduleData.forEach((s, idx) => {
-            let attended = currentUser?.attendedSessions?.includes(idx);
-            html += `<tr>
-                <td style="font-weight:bold; color:#7c3aed;">✨ ${s.day}</td>
-                <td>${s.hijriDate} ${s.gregorianDate}</td>
-                <td>${s.teacher}</td>
-                <td style="text-align:right;">🌿 ${s.topic}</td>
-                <td>🕰️ ${s.time}</td>
-                <td>${s.meetLink ? `<a href="${s.meetLink}" target="_blank" class="meet-btn-small">حضور</a>` : '⏳ قريباً'}</td>
-                <td>${s.meetLink ? `<button onclick="markAttendance(${idx})" class="meet-btn-small ${attended ? 'disabled' : ''}" ${attended ? 'disabled' : ''}>${attended ? '✅ تم' : 'تسجيل (+5)'}</button>` : '---'}</td>
-            </tr>`;
-        });
-        html += `</tbody></table></div>`;
-        document.getElementById('fullSchedule').innerHTML = html;
-        document.getElementById('homeSchedule').innerHTML = html;
+    function renderStations() {
+        let cont = document.getElementById('stationsList');
+        if (!cont) return;
+        if (currentUser?.isTeacher) {
+            cont.innerHTML = '<div style="padding:2rem; text-align:center;">👩‍🏫 هذا القسم للطالبات</div>';
+            return;
+        }
+        cont.innerHTML = stations.map(s => {
+            let disabled = !(s.available && !s.completed);
+            return `<div class="station-card ${s.completed ? 'completed' : (s.available ? 'available' : 'locked')}" onclick="${disabled ? '' : 'completeStationLogic(' + s.id + ')'}">
+                        <div><div style="font-size:1.5rem;">${s.icon}</div><div><strong>${s.title}</strong><br><small>${s.badge}</small></div></div>
+                        <button class="complete-btn" ${disabled ? 'disabled' : ''}>${s.completed ? '✅ تم' : '✨ إكمال'}</button>
+                    </div>`;
+        }).join('');
     }
     
-    function initCompanion() { if (currentUser?.isTeacher) return; if (!currentUser.companionId) currentUser.companionId = null; if (!currentUser.messages) currentUser.messages = []; renderCompanionUI(); }
-    function renderCompanionUI() { if (currentUser?.isTeacher) return; let pairDiv = document.getElementById('pairStatus'); let msgsDiv = document.getElementById('messagesList'); if (!pairDiv) return; if (!currentUser.companionId) { pairDiv.innerHTML = '🕊️ ليس لديك رفيقة. اضغطي "طلب رفيقة"'; if (msgsDiv) msgsDiv.innerHTML = '<div style="padding:1rem;">✨ ابدئي بطلب رفيقة ✨</div>'; return; } let comp = allUsers.find(u => u.id === currentUser.companionId); if (!comp) { currentUser.companionId = null; saveAllData(); renderCompanionUI(); return; } pairDiv.innerHTML = `🌸 رفيقتك: <strong style="color:#7c3aed;">${comp.name}</strong> 🌸`; let allMsgs = [...(currentUser.messages || []), ...(comp.messages || []).filter(m => m.toId === currentUser.id)]; allMsgs.sort((a, b) => new Date(b.date) - new Date(a.date)); if (msgsDiv) { if (allMsgs.length === 0) msgsDiv.innerHTML = '<div style="padding:1rem;">💕 لا توجد رسائل بعد</div>'; else msgsDiv.innerHTML = allMsgs.map(m => { let sender = m.fromId === currentUser.id ? "أنتِ" : comp.name; return `<div class="message-item"><strong>${sender}</strong><br>${m.text}<div style="font-size:0.7rem;">${new Date(m.date).toLocaleString()}</div></div>`; }).join(''); } }
-    
-    function requestCompanion() { 
-        if (currentUser?.isTeacher) return; 
-        if (currentUser.companionId) { showToast("لديك رفيقة بالفعل!", "error"); return; } 
-        let available = allUsers.filter(u => u.id !== currentUser.id && !u.companionId && !u.isTeacher && u.email !== currentUser.email);
-        if (available.length === 0) { showToast("لا توجد طالبات متاحات حالياً", "error"); return; } 
-        let randomComp = available[Math.floor(Math.random() * available.length)]; 
-        currentUser.companionId = randomComp.id; 
-        randomComp.companionId = currentUser.id; 
-        currentUser.companionName = randomComp.name; 
-        randomComp.companionName = currentUser.name; 
-        syncCompanionToSheet(currentUser.email, randomComp.name);
-        syncCompanionToSheet(randomComp.email, currentUser.name);
-        let welcome = { id: Date.now(), fromId: currentUser.id, toId: randomComp.id, text: `السلام عليكم رفيقة عرفة! 🕊️`, type: "kind", date: new Date().toISOString() }; 
-        currentUser.messages.push(welcome); 
-        randomComp.messages.push({ ...welcome }); 
-        saveAllData(); 
-        renderCompanionUI(); 
-        syncToGoogleSheet(currentUser); 
-        syncToGoogleSheet(randomComp); 
-        showToast(`أصبحت ${randomComp.name} رفيقتك!`, "success"); 
+    function renderBadges() {
+        let cont = document.getElementById('badgesGrid');
+        if (!cont) return;
+        if (currentUser?.isTeacher) {
+            cont.innerHTML = '<div style="padding:2rem; text-align:center;">👩‍🏫 الأوسمة للطالبات</div>';
+            return;
+        }
+        let badges = [...stations.map(s => ({ name: s.badge, icon: s.icon, earned: s.completed })), { name: "وسام الرفيقة", icon: "💕", earned: !!currentUser.companionName }];
+        cont.innerHTML = badges.map(b => `<div class="badge-card ${b.earned ? 'earned' : ''}"><div class="badge-icon">${b.icon}</div><div>${b.name}</div>${!b.earned ? '🔒' : '✅'}</div>`).join('');
     }
     
-    function sendMessage() { 
-        if (currentUser?.isTeacher) return; 
-        let text = document.getElementById('messageInput')?.value.trim(); 
-        if (!text) return showToast("اكتبي رسالة", "error"); 
-        if (!currentUser.companionId) return showToast("ليس لديك رفيقة!", "error"); 
-        let comp = allUsers.find(u => u.id === currentUser.companionId); 
-        if (!comp) return; 
-        let newMsg = { id: Date.now(), fromId: currentUser.id, toId: comp.id, text: text, type: currentMsgType, date: new Date().toISOString() }; 
-        currentUser.messages.push(newMsg); 
-        comp.messages.push({ ...newMsg }); 
-        addPoints(2, "إرسال رسالة"); 
-        comp.points = (comp.points || 0) + 1; 
-        saveAllData(); 
-        renderCompanionUI(); 
-        syncToGoogleSheet(currentUser); 
-        syncToGoogleSheet(comp); 
-        document.getElementById('messageInput').value = ''; 
-        showToast("تم الإرسال! +2 نقطة لك، +1 لرفيقتك", "success"); 
+    function updateDashboard() {
+        if (!currentUser) return;
+        if (currentUser.isTeacher) {
+            document.getElementById('completedStations').innerHTML = '-';
+            document.getElementById('completedChallenges').innerHTML = '-';
+            document.getElementById('companionPoints').innerHTML = '-';
+            document.getElementById('totalPointsDisplay').innerHTML = '-';
+            document.getElementById('progressFill').style.width = '0%';
+            document.getElementById('progressPercent').innerHTML = '0%';
+            document.getElementById('displayUserName').innerHTML = currentUser.name + ' (معلمة)';
+            return;
+        }
+        let compCount = stations.filter(s => s.completed).length;
+        let chalCount = currentUser.completedChallenges?.length || 0;
+        let points = currentUser.points || 0;
+        document.getElementById('completedStations').innerHTML = compCount;
+        document.getElementById('completedChallenges').innerHTML = chalCount;
+        document.getElementById('companionPoints').innerHTML = currentUser.companionPoints || 0;
+        document.getElementById('totalPointsDisplay').innerHTML = points;
+        document.getElementById('progressFill').style.width = (compCount / 5 * 100) + '%';
+        document.getElementById('progressPercent').innerHTML = Math.round(compCount / 5 * 100) + '%';
+        document.getElementById('displayUserName').innerHTML = currentUser.name || '';
     }
     
-    function completeStationLogic(id) { 
-        if (currentUser?.isTeacher) return; 
-        let s = stations.find(s => s.id === id); 
-        if (!s.available || s.completed) return; 
-        s.completed = true; 
-        currentUser.completedStations = currentUser.completedStations || []; 
-        if (!currentUser.completedStations.includes(id)) currentUser.completedStations.push(id); 
-        addPoints(25, `إكمال ${s.title}`); 
-        updateStationAvailability(); 
-        saveAllData(); 
-        renderStations(); 
-        renderBadges(); 
-        syncToGoogleSheet(currentUser); 
+    function saveCurrentUser() {
+        localStorage.setItem('quran_current_user', JSON.stringify(currentUser));
     }
-    function updateStationAvailability() { stations[0].available = !stations[0].completed; for (let i = 1; i < stations.length; i++) stations[i].available = stations[i-1].completed && !stations[i].completed; }
-    function renderStations() { let cont = document.getElementById('stationsList'); if (!cont) return; if (currentUser?.isTeacher) { cont.innerHTML = '<div style="padding:2rem; text-align:center;">👩‍🏫 هذا القسم للطالبات</div>'; return; } cont.innerHTML = stations.map(s => { let disabled = !(s.available && !s.completed); return `<div class="station-card ${s.completed ? 'completed' : (s.available ? 'available' : 'locked')}" onclick="${disabled ? '' : 'completeStationLogic(' + s.id + ')'}"><div><div style="font-size:1.5rem;">${s.icon}</div><div><strong>${s.title}</strong><br><small>${s.badge}</small></div></div><button class="complete-btn" ${disabled ? 'disabled' : ''}>${s.completed ? '✅ تم' : '✨ إكمال'}</button></div>`; }).join(''); }
-    function renderBadges() { let cont = document.getElementById('badgesGrid'); if (!cont) return; if (currentUser?.isTeacher) { cont.innerHTML = '<div style="padding:2rem; text-align:center;">👩‍🏫 الأوسمة للطالبات</div>'; return; } let badges = [...stations.map(s => ({ name: s.badge, icon: s.icon, earned: s.completed })), { name: "وسام الرفيقة", icon: "💕", earned: !!currentUser.companionId }]; cont.innerHTML = badges.map(b => `<div class="badge-card ${b.earned ? 'earned' : ''}"><div class="badge-icon">${b.icon}</div><div>${b.name}</div>${!b.earned ? '🔒' : '✅'}</div>`).join(''); }
-    function updateDashboard() { if (!currentUser) return; if (currentUser.isTeacher) { document.getElementById('completedStations').innerHTML = '-'; document.getElementById('completedChallenges').innerHTML = '-'; document.getElementById('companionPoints').innerHTML = '-'; document.getElementById('totalPointsDisplay').innerHTML = '-'; document.getElementById('progressFill').style.width = '0%'; document.getElementById('progressPercent').innerHTML = '0%'; document.getElementById('displayUserName').innerHTML = currentUser.name + ' (معلمة)'; return; } let compCount = stations.filter(s => s.completed).length; let chalCount = currentUser.completedChallenges?.length || 0; let points = currentUser.points || 0; document.getElementById('completedStations').innerHTML = compCount; document.getElementById('completedChallenges').innerHTML = chalCount; document.getElementById('companionPoints').innerHTML = currentUser.companionPoints || 0; document.getElementById('totalPointsDisplay').innerHTML = points; document.getElementById('progressFill').style.width = (compCount / 5 * 100) + '%'; document.getElementById('progressPercent').innerHTML = Math.round(compCount / 5 * 100) + '%'; document.getElementById('displayUserName').innerHTML = currentUser.name || ''; }
     
-    function studentLogin() { 
-        let name = document.getElementById('studentName').value.trim(); 
-        let email = document.getElementById('studentEmail').value.trim(); 
-        if (!name || !email) { showToast("املأ البيانات", "error"); return; } 
-        let saved = localStorage.getItem('quran_data'); 
-        if (saved) allUsers = JSON.parse(saved); 
-        let existing = allUsers.find(u => u.email === email && !u.isTeacher); 
-        if (existing) { currentUser = existing; } 
-        else { currentUser = { id: Date.now(), name: name, email: email, points: 0, companionPoints: 0, completedStations: [], completedChallenges: [], lastChallengeDate: null, companionId: null, companionName: "", messages: [], attendedSessions: [], isTeacher: false }; allUsers.push(currentUser); syncToGoogleSheet(currentUser); } 
-        finalizeLogin(); 
+    function studentLogin() {
+        let name = document.getElementById('studentName').value.trim();
+        let email = document.getElementById('studentEmail').value.trim();
+        if (!name || !email) { showToast("املأ البيانات", "error"); return; }
+        let savedUser = localStorage.getItem('quran_current_user');
+        if (savedUser) {
+            let parsed = JSON.parse(savedUser);
+            if (parsed.email === email && !parsed.isTeacher) {
+                currentUser = parsed;
+                // استعادة حالة المحطات من currentUser
+                stations.forEach(s => { s.completed = currentUser.completedStations?.includes(s.id) || false; });
+                updateStationAvailability();
+                finalizeLogin();
+                syncToGoogleSheet(currentUser);
+                return;
+            }
+        }
+        // مستخدم جديد
+        currentUser = {
+            id: Date.now(),
+            name: name,
+            email: email,
+            points: 0,
+            companionPoints: 0,
+            completedStations: [],
+            completedChallenges: [],
+            lastChallenge: null,
+            companionName: "",
+            companionId: null,
+            messages: [],
+            attended: [],
+            isTeacher: false
+        };
+        stations.forEach(s => { s.completed = false; s.available = (s.id === 0); });
+        updateStationAvailability();
+        finalizeLogin();
+        syncToGoogleSheet(currentUser);
+        showToast(`مرحباً ${name}!`, "success");
     }
     
     function showTeacherLoginModal() {
         let pwd = prompt("🔐 أدخلي كلمة سر المعلمة:");
         if (pwd === TEACHER_PASSWORD) {
-            let saved = localStorage.getItem('quran_data');
-            if (saved) allUsers = JSON.parse(saved);
-            let existingTeacher = allUsers.find(u => u.isTeacher === true);
-            if (existingTeacher) { currentUser = existingTeacher; }
-            else { currentUser = { id: Date.now(), name: "المعلمة", email: "teacher@quran.com", points: 0, companionPoints: 0, completedStations: [], completedChallenges: [], lastChallengeDate: null, companionId: null, companionName: "", messages: [], attendedSessions: [], isTeacher: true }; allUsers.push(currentUser); }
+            currentUser = {
+                id: Date.now(),
+                name: "المعلمة",
+                email: "teacher@quran.com",
+                points: 0,
+                isTeacher: true
+            };
+            stations.forEach(s => { s.completed = false; s.available = (s.id === 0); });
+            updateStationAvailability();
             finalizeLogin();
             loadAllStudentsFromSheets();
         } else { showToast("❌ كلمة السر غير صحيحة!", "error"); }
     }
     
     function finalizeLogin() {
-        if (currentUser.isTeacher) { stations.forEach(s => { s.completed = false; s.available = (s.id === 0); }); }
-        else { stations.forEach(s => { s.completed = currentUser.completedStations?.includes(s.id) || false; }); }
-        updateStationAvailability();
-        localStorage.setItem('quran_data', JSON.stringify(allUsers));
-        localStorage.setItem('currentUserId', currentUser.id);
+        localStorage.setItem('quran_current_user', JSON.stringify(currentUser));
         document.getElementById('loginOverlay').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
-        if (currentUser.isTeacher) { document.querySelectorAll('.teacher-only').forEach(el => el.style.display = 'flex'); document.querySelectorAll('.student-only').forEach(el => el.style.display = 'none'); }
-        else { document.querySelectorAll('.teacher-only').forEach(el => el.style.display = 'none'); document.querySelectorAll('.student-only').forEach(el => el.style.display = 'flex'); }
-        updateDashboard(); renderStations(); renderSchedule(); renderBadges(); initWheel();
+        if (currentUser.isTeacher) {
+            document.querySelectorAll('.teacher-only').forEach(el => el.style.display = 'flex');
+            document.querySelectorAll('.student-only').forEach(el => el.style.display = 'none');
+        } else {
+            document.querySelectorAll('.teacher-only').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.student-only').forEach(el => el.style.display = 'flex');
+        }
+        updateDashboard();
+        renderStations();
+        renderSchedule();
+        renderBadges();
+        initWheel();
         if (!currentUser.isTeacher) initCompanion();
         if (currentUser.isTeacher) loadAllStudentsFromSheets();
-        showToast(`مرحباً ${currentUser.name}${currentUser.isTeacher ? ' (معلمة)' : ''}!`, "success");
     }
     
-    function saveAllData() { if (currentUser) { let idx = allUsers.findIndex(u => u.id === currentUser.id); if (idx !== -1) allUsers[idx] = currentUser; localStorage.setItem('quran_data', JSON.stringify(allUsers)); } }
-    function logoutUser() { localStorage.removeItem('currentUserId'); location.reload(); }
+    function logoutUser() { localStorage.removeItem('quran_current_user'); location.reload(); }
     function showToast(msg, type = 'success') { let t = document.createElement('div'); t.className = `toast-message toast-${type}`; t.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${msg}`; document.body.appendChild(t); setTimeout(() => t.remove(), 3000); }
     
-    document.querySelectorAll('.nav-link').forEach(l => { l.addEventListener('click', function () { document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active')); this.classList.add('active'); let pg = this.dataset.page; document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById(pg + 'Page').classList.add('active'); if (pg === 'challenges') initWheel(); if (pg === 'stations') renderStations(); if (pg === 'badges') renderBadges(); if (pg === 'schedule') renderSchedule(); if (pg === 'companion' && !currentUser?.isTeacher) initCompanion(); if (pg === 'teacherPanel' && currentUser?.isTeacher) loadAllStudentsFromSheets(); }); });
-    document.querySelectorAll('.msg-type-btn').forEach(btn => { btn.addEventListener('click', function () { document.querySelectorAll('.msg-type-btn').forEach(b => b.classList.remove('active')); this.classList.add('active'); currentMsgType = this.dataset.type; }); });
+    document.querySelectorAll('.nav-link').forEach(l => {
+        l.addEventListener('click', function () {
+            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+            this.classList.add('active');
+            let pg = this.dataset.page;
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pg + 'Page').classList.add('active');
+            if (pg === 'challenges') initWheel();
+            if (pg === 'stations') renderStations();
+            if (pg === 'badges') renderBadges();
+            if (pg === 'schedule') renderSchedule();
+            if (pg === 'companion' && !currentUser?.isTeacher) initCompanion();
+            if (pg === 'teacherPanel' && currentUser?.isTeacher) loadAllStudentsFromSheets();
+        });
+    });
+    
+    document.querySelectorAll('.msg-type-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            document.querySelectorAll('.msg-type-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentMsgType = this.dataset.type;
+        });
+    });
     document.getElementById('findCompanionBtn')?.addEventListener('click', requestCompanion);
     document.getElementById('sendMsgBtn')?.addEventListener('click', sendMessage);
     
-    function restoreSession() { let userId = localStorage.getItem('currentUserId'); if (userId) { let saved = localStorage.getItem('quran_data'); if (saved) { allUsers = JSON.parse(saved); currentUser = allUsers.find(u => u.id == userId); if (currentUser) { stations.forEach(s => { s.completed = currentUser.completedStations?.includes(s.id) || false; }); updateStationAvailability(); document.getElementById('loginOverlay').style.display = 'none'; document.getElementById('mainApp').style.display = 'block'; if (currentUser.isTeacher) { document.querySelectorAll('.teacher-only').forEach(el => el.style.display = 'flex'); document.querySelectorAll('.student-only').forEach(el => el.style.display = 'none'); } else { document.querySelectorAll('.teacher-only').forEach(el => el.style.display = 'none'); document.querySelectorAll('.student-only').forEach(el => el.style.display = 'flex'); } updateDashboard(); renderStations(); renderSchedule(); renderBadges(); initWheel(); if (!currentUser.isTeacher) initCompanion(); if (currentUser.isTeacher) loadAllStudentsFromSheets(); } } } }
-    function updateCountdown() { let start = new Date(2026, 4, 18), now = new Date(), diff = start - now; if (diff <= 0) { let td = document.getElementById('countdownTimer'); if (td) td.innerHTML = '<h3>🎉 الرحلة بدأت!</h3>'; return; } document.getElementById('daysLeft').innerHTML = Math.floor(diff / 86400000); document.getElementById('hoursLeft').innerHTML = Math.floor((diff % 86400000) / 3600000); document.getElementById('minutesLeft').innerHTML = Math.floor((diff % 3600000) / 60000); document.getElementById('secondsLeft').innerHTML = Math.floor((diff % 60000) / 1000); }
-    restoreSession(); setInterval(updateCountdown, 1000);
+    function restoreSession() {
+        let savedUser = localStorage.getItem('quran_current_user');
+        if (savedUser) {
+            currentUser = JSON.parse(savedUser);
+            if (currentUser.isTeacher) {
+                stations.forEach(s => { s.completed = false; s.available = (s.id === 0); });
+                updateStationAvailability();
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'block';
+                document.querySelectorAll('.teacher-only').forEach(el => el.style.display = 'flex');
+                document.querySelectorAll('.student-only').forEach(el => el.style.display = 'none');
+                updateDashboard(); renderStations(); renderSchedule(); renderBadges(); initWheel();
+                loadAllStudentsFromSheets();
+            } else {
+                stations.forEach(s => { s.completed = currentUser.completedStations?.includes(s.id) || false; });
+                updateStationAvailability();
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'block';
+                document.querySelectorAll('.teacher-only').forEach(el => el.style.display = 'none');
+                document.querySelectorAll('.student-only').forEach(el => el.style.display = 'flex');
+                updateDashboard(); renderStations(); renderSchedule(); renderBadges(); initWheel();
+                initCompanion();
+            }
+        }
+    }
+    
+    function updateCountdown() {
+        let start = new Date(2026, 4, 18), now = new Date(), diff = start - now;
+        if (diff <= 0) { let td = document.getElementById('countdownTimer'); if (td) td.innerHTML = '<h3>🎉 الرحلة بدأت!</h3>'; return; }
+        document.getElementById('daysLeft').innerHTML = Math.floor(diff / 86400000);
+        document.getElementById('hoursLeft').innerHTML = Math.floor((diff % 86400000) / 3600000);
+        document.getElementById('minutesLeft').innerHTML = Math.floor((diff % 3600000) / 60000);
+        document.getElementById('secondsLeft').innerHTML = Math.floor((diff % 60000) / 1000);
+    }
+    
+    restoreSession();
+    setInterval(updateCountdown, 1000);
 </script>
 </body>
 </html>
