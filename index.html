@@ -256,6 +256,104 @@
     let currentMsgType = "dua";
 
     // ==================== GOOGLE SHEETS FUNCTIONS ====================
+    // ==================== COMPANION FUNCTIONS (Random, No Duplicate, Mutual) ====================
+async function requestRandomCompanion() {
+    if(currentUser?.isTeacher) {
+        showToast("المعلمة لا يمكنها طلب رفيقة", "error");
+        return;
+    }
+    
+    if(currentUser.companionId && currentUser.companionName) {
+        showToast(`لديكِ رفيقة بالفعل: ${currentUser.companionName} 💕`, "error");
+        return;
+    }
+    
+    showToast("🔄 جاري البحث عن رفيقة عشوائية لكِ...", "info");
+    
+    try {
+        // جلب جميع الطالبات من Google Sheets
+        const response = await fetch(SCRIPT_URL);
+        const allStudentsData = await response.json();
+        
+        // تصفية الطالبات المتاحات (ليس لديهن رفيقات)
+        const availableStudents = allStudentsData.filter(s => 
+            s.email !== currentUser.email && 
+            (!s.companion || s.companion === "" || s.companion === "لا يوجد" || s.companion === "null") &&
+            s.name !== "المعلمة"
+        );
+        
+        if(availableStudents.length === 0) {
+            showToast("😔 لا توجد طالبات متاحات حالياً. انتظري حتى تسجل أخريات!", "error");
+            return;
+        }
+        
+        // اختيار رفيقة عشوائية
+        const randomIndex = Math.floor(Math.random() * availableStudents.length);
+        const selectedCompanion = availableStudents[randomIndex];
+        
+        // ========== تحديث بيانات الطالبة الأولى (الحالية) ==========
+        currentUser.companionId = Date.now() + Math.random();
+        currentUser.companionName = selectedCompanion.name;
+        currentUser.companionEmail = selectedCompanion.email;
+        
+        // إضافة رسالة ترحيب للطالبة الأولى
+        currentUser.messages = currentUser.messages || [];
+        currentUser.messages.push({
+            id: Date.now(), 
+            from: 'me', 
+            text: `السلام عليكم رفيقة عرفة! 🕊️ سعيدة برحلتنا معًا إلى الله 🤍`,
+            type: "kind", 
+            date: new Date().toISOString()
+        });
+        
+        // حفظ بيانات الطالبة الأولى في Google Sheets
+        await fetch(SCRIPT_URL, {
+            method: 'POST', 
+            mode: 'no-cors', 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                action: "update_companion", 
+                email: currentUser.email, 
+                companionName: selectedCompanion.name,
+                companionEmail: selectedCompanion.email
+            })
+        });
+        
+        await saveStudentToSheet(currentUser);
+        
+        // ========== تحديث بيانات الطالبة الثانية (الرفيقة) ==========
+        // ملاحظة: بما أن الرفيقة مسجلة في Google Sheets، نحتاج إلى تحديث بياناتها أيضاً
+        await fetch(SCRIPT_URL, {
+            method: 'POST', 
+            mode: 'no-cors', 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                action: "update_companion", 
+                email: selectedCompanion.email, 
+                companionName: currentUser.name,
+                companionEmail: currentUser.email
+            })
+        });
+        
+        // إضافة رسالة ترحيب للطالبة الثانية (ستظهر عندما تسجل دخولها)
+        // يتم ذلك عبر تحديث قاعدة البيانات
+        
+        saveCurrentUser();
+        renderCompanionUI();
+        
+        showToast(`🎉 أصبحت ${selectedCompanion.name} رفيقتك إلى عرفة! 🎉`, "success");
+        showToast(`✨ ستعرف ${selectedCompanion.name} أيضاً أنكِ رفيقتها ✨`, "success");
+        
+        // تحديث لوحة المعلمة إذا كانت مفتوحة
+        if(document.getElementById('teacherPanelPage').classList.contains('active')) {
+            loadAllStudents();
+        }
+        
+    } catch(error) {
+        console.error("خطأ:", error);
+        showToast("حدث خطأ في البحث عن رفيقة", "error");
+    }
+}
     async function loadAllStudents() {
         const tbody = document.getElementById('studentsTableBody');
         tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">⏳ جاري التحميل...</td></tr>';
