@@ -92,6 +92,8 @@
         .points-icon { width: 40px; height: 40px; background: #a855f7; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; }
         .refresh-chat-btn { background: #7c3aed; color: white; border: none; border-radius: 2rem; padding: 0.3rem 1rem; cursor: pointer; }
         .chat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem; }
+        .join-btn { background: #10b981; color: white; border: none; border-radius: 2rem; padding: 0.5rem 1rem; cursor: pointer; margin-top: 0.5rem; }
+        .room-code-display { font-size: 1.8rem; font-weight: bold; color: #7c3aed; direction: ltr; background: white; padding: 0.5rem; border-radius: 1rem; margin: 0.5rem 0; letter-spacing: 2px; }
         @media (max-width: 768px) { .schedule-table { font-size: 0.7rem; } .points-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -161,7 +163,6 @@
                         <button class="msg-type-btn" data-type="kind">💕 رسالة لطيفة</button>
                     </div>
                     <div style="display:flex; gap:0.5rem;">
-                        <button id="findCompanionBtn" style="background:#8b5cf6; color:white; border:none; border-radius:2rem; padding:0.3rem 1rem; cursor:pointer;">🎲 طلب رفيقة</button>
                         <button id="refreshChatBtn" class="refresh-chat-btn"><i class="fas fa-sync-alt"></i> تحديث</button>
                     </div>
                 </div>
@@ -209,14 +210,7 @@
 </div>
 
 <script>
-    // Use a free public JSON storage service (JSONBin.io)
-    // This BIN is publicly accessible for storing messages
-    const MESSAGES_BIN_ID = "67aaa943acd3f34ba5e6b1e3";
-    const MESSAGES_API_KEY = "$2a$10$Nvq3ZxUZxZxZxZxZxZxZxO";
-    
-    // For simplicity, we'll use localStorage with a shared room code approach
-    // Each pair gets a unique room code that they share
-    
+    // Use localStorage with room code - works across devices when code is shared
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJ1t-DZBLZLwK2tkS8l8alna0NsuKwQoLFPw_1pFi_VY_f2RY9yGWO77--2h64vptq/exec";
     const TEACHER_PASSWORD = "admin1446";
     const GOOGLE_MEET_LINK = "https://meet.google.com/nki-xmmx-kfu";
@@ -249,91 +243,42 @@
     let currentMsgType = "dua";
     let messageInterval = null;
 
-    // ============= MESSAGING SYSTEM USING Google Sheets =============
-    async function saveMessageToSheet(message) {
-        try {
-            const response = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: "save_message",
-                    companionId: message.companionId,
-                    id: message.id,
-                    fromEmail: message.fromEmail,
-                    fromName: message.fromName,
-                    text: message.text,
-                    type: message.type,
-                    timestamp: message.timestamp
-                })
-            });
-            return true;
-        } catch(e) {
-            console.error("Error saving message:", e);
-            return false;
-        }
-    }
-
-    async function loadMessagesFromSheet(companionId) {
-        try {
-            const url = `${SCRIPT_URL}?action=get_messages&companionId=${companionId}`;
-            const response = await fetch(url);
-            const messages = await response.json();
-            return Array.isArray(messages) ? messages : [];
-        } catch(e) {
-            console.error("Error loading messages:", e);
-            return [];
-        }
-    }
-
-    // Store messages in localStorage with room code as backup
+    // ============= MESSAGING SYSTEM =============
     function getMessageKey() {
-        if (!currentUser || !currentUser.companionId) return null;
-        return `messages_${currentUser.companionId}`;
+        if (!currentUser || !currentUser.roomCode) return null;
+        return `room_messages_${currentUser.roomCode}`;
     }
 
-    function loadMessagesFromLocal() {
+    function loadMessages() {
         const key = getMessageKey();
         if (!key) return [];
         const stored = localStorage.getItem(key);
         return stored ? JSON.parse(stored) : [];
     }
 
-    function saveMessageToLocal(message) {
+    function saveMessageToStorage(message) {
         const key = getMessageKey();
         if (!key) return;
-        const messages = loadMessagesFromLocal();
+        const messages = loadMessages();
         messages.push(message);
         localStorage.setItem(key, JSON.stringify(messages));
     }
 
-    async function refreshMessages() {
+    function refreshMessagesDisplay() {
         if (!currentUser || currentUser.isTeacher) return;
-        if (!currentUser.companionId) {
-            renderMessagesList([]);
+        if (!currentUser.roomCode) {
+            document.getElementById('messagesList').innerHTML = '<div style="padding:1rem; text-align:center;">💕 لا توجد رسائل بعد</div>';
             return;
         }
-        
-        // Try to load from Google Sheets first
-        let messages = await loadMessagesFromSheet(currentUser.companionId);
-        
-        // Fallback to localStorage if Sheets fails
-        if (!messages || messages.length === 0) {
-            messages = loadMessagesFromLocal();
-        }
-        
-        renderMessagesList(messages);
-    }
-
-    function renderMessagesList(messages) {
+        const messages = loadMessages();
         const msgsDiv = document.getElementById('messagesList');
         if (!msgsDiv) return;
-        if (!messages || messages.length === 0) {
+        if (messages.length === 0) {
             msgsDiv.innerHTML = '<div style="padding:1rem; text-align:center;">💕 لا توجد رسائل بعد. ابدئي بدعم رفيقتك!</div>';
             return;
         }
         msgsDiv.innerHTML = messages.map(m => {
-            const isMyMessage = m.fromEmail === currentUser?.email;
+            const isMyMessage = m.fromEmail === currentUser.email;
             return `<div class="message-item ${isMyMessage ? 'my-message' : 'their-message'}">
                         <div class="message-sender ${isMyMessage ? 'my-color' : 'their-color'}">
                             <i class="fas ${isMyMessage ? 'fa-user' : 'fa-user-friends'}"></i>
@@ -352,17 +297,16 @@
         return div.innerHTML;
     }
 
-    async function sendMessageToSheet() {
+    function sendMessage() {
         if (currentUser?.isTeacher) { showToast("المعلمة لا يمكنها إرسال رسائل", "error"); return; }
         let text = document.getElementById('messageInput')?.value.trim();
         if (!text) { showToast("اكتبي رسالتك أولاً", "error"); return; }
-        if (!currentUser.companionId) {
+        if (!currentUser.roomCode) {
             showToast("ليس لديك رفيقة! اطلبي رفيقة أولاً", "error");
             return;
         }
         
         const newMessage = {
-            companionId: currentUser.companionId,
             id: Date.now(),
             fromEmail: currentUser.email,
             fromName: currentUser.name,
@@ -371,14 +315,114 @@
             timestamp: new Date().toISOString()
         };
         
-        // Save to both Sheet and Local
-        await saveMessageToSheet(newMessage);
-        saveMessageToLocal(newMessage);
-        
+        saveMessageToStorage(newMessage);
         addPoints(2, "إرسال رسالة لرفيقتك");
         document.getElementById('messageInput').value = '';
-        await refreshMessages();
+        refreshMessagesDisplay();
         showToast(`✨ أرسلتِ رسالة! ✨`, "success");
+    }
+
+    // Create a new room (Student A)
+    function createRoom() {
+        if (currentUser?.isTeacher) { showToast("المعلمة لا يمكنها إنشاء غرفة", "error"); return; }
+        if (currentUser.roomCode) {
+            showToast(`لديك غرفة بالفعل! الكود: ${currentUser.roomCode}`, "info");
+            return;
+        }
+        // Generate random 6-character room code
+        const newRoomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+        currentUser.roomCode = newRoomCode;
+        currentUser.companionName = "تنتظر الانضمام";
+        saveCurrentUser();
+        renderCompanionUI();
+        showToast(`🎨 تم إنشاء غرفة! الكود: ${newRoomCode}`, "success");
+        // Copy to clipboard automatically
+        navigator.clipboard.writeText(newRoomCode);
+        showToast("✅ تم نسخ الكود! أرسليه لرفيقتك", "success");
+    }
+
+    // Join existing room (Student B)
+    function joinRoom() {
+        if (currentUser?.isTeacher) { showToast("المعلمة لا يمكنها الانضمام", "error"); return; }
+        const code = prompt("🔑 أدخلي كود الغرفة الذي أرسلته رفيقتك:");
+        if (code && code.trim()) {
+            const companionName = prompt("📝 أدخلي اسم رفيقتك:");
+            if (companionName) {
+                currentUser.roomCode = code.trim().toUpperCase();
+                currentUser.companionName = companionName;
+                saveCurrentUser();
+                renderCompanionUI();
+                refreshMessagesDisplay();
+                showToast(`✅ تم الانضمام إلى غرفة ${currentUser.roomCode}`, "success");
+            }
+        }
+    }
+
+    // Leave current room
+    function leaveRoom() {
+        if (!currentUser.roomCode) {
+            showToast("ليس لديك غرفة للمغادرة", "error");
+            return;
+        }
+        if (confirm("هل أنت متأكدة من مغادرة الغرفة؟ سيتم حذف المحادثة")) {
+            const key = getMessageKey();
+            if (key) localStorage.removeItem(key);
+            currentUser.roomCode = null;
+            currentUser.companionName = null;
+            saveCurrentUser();
+            renderCompanionUI();
+            refreshMessagesDisplay();
+            showToast("✅ تم مغادرة الغرفة", "success");
+        }
+    }
+
+    function renderCompanionUI() {
+        if (currentUser?.isTeacher) return;
+        let pairDiv = document.getElementById('pairStatus');
+        if (!pairDiv) return;
+        
+        if (!currentUser.roomCode) {
+            pairDiv.innerHTML = `
+                <div style="text-align:center; padding:1rem;">
+                    <i class="fas fa-user-friends" style="font-size:2rem; color:#8b5cf6;"></i>
+                    <p style="margin: 0.5rem 0;">🕊️ ليس لديك رفيقة بعد</p>
+                    <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; margin-top:1rem;">
+                        <button onclick="createRoom()" style="background:#8b5cf6; color:white; border:none; border-radius:2rem; padding:0.5rem 1.5rem; cursor:pointer; font-size:1rem;">
+                            🎨 إنشاء غرفة جديدة
+                        </button>
+                        <button onclick="joinRoom()" style="background:#10b981; color:white; border:none; border-radius:2rem; padding:0.5rem 1.5rem; cursor:pointer; font-size:1rem;">
+                            🔑 الانضمام إلى غرفة
+                        </button>
+                    </div>
+                    <p style="font-size:0.7rem; color:#718096; margin-top:1rem;">
+                        ✨ أنشئي غرفة جديدة وأرسلي الكود لرفيقتك، أو انضمي بكود من رفيقتك
+                    </p>
+                </div>
+            `;
+            return;
+        }
+        
+        pairDiv.innerHTML = `
+            <div style="background:linear-gradient(135deg,#f3e8ff,#e9d5ff); border-radius:1rem; padding:1rem; text-align:center;">
+                <i class="fas fa-heart" style="color:#ec4899; font-size:1.5rem;"></i>
+                <p style="margin: 0.5rem 0;">🌸 غرفة المحادثة 🌸</p>
+                <div class="room-code-display">${currentUser.roomCode}</div>
+                <p style="margin: 0.5rem 0;">
+                    <strong>رفيقتك:</strong> ${currentUser.companionName || 'في انتظار الانضمام'}
+                </p>
+                <div style="display:flex; gap:0.5rem; justify-content:center; flex-wrap:wrap; margin-top:0.5rem;">
+                    <button onclick="navigator.clipboard.writeText('${currentUser.roomCode}')" style="background:#7c3aed; color:white; border:none; border-radius:2rem; padding:0.3rem 1rem; cursor:pointer;">
+                        📋 نسخ الكود
+                    </button>
+                    <button onclick="leaveRoom()" style="background:#ef4444; color:white; border:none; border-radius:2rem; padding:0.3rem 1rem; cursor:pointer;">
+                        🚪 مغادرة الغرفة
+                    </button>
+                </div>
+                <p style="font-size:0.7rem; color:#718096; margin-top:0.5rem;">
+                    🤝 أرسلي الكود لرفيقتها لتتمكنا من التواصل
+                </p>
+            </div>
+        `;
     }
 
     async function loadAllStudents() {
@@ -405,33 +449,6 @@
         }
     }
 
-    function requestRandomCompanion() {
-        if (currentUser?.isTeacher) { showToast("المعلمة لا يمكنها طلب رفيقة", "error"); return; }
-        if (currentUser.companionId) {
-            showToast(`لديك رفيقة! الكود: ${currentUser.companionId}`, "info");
-            return;
-        }
-        const newRoomCode = Math.random().toString(36).substring(2, 10).toUpperCase();
-        currentUser.companionId = newRoomCode;
-        currentUser.companionName = "رفيقتك";
-        saveCurrentUser();
-        renderCompanionUI();
-        showToast(`🎉 كود غرفتك: ${newRoomCode}`, "success");
-        navigator.clipboard.writeText(newRoomCode);
-        showToast("✅ تم نسخ الكود! أرسليه لرفيقتك", "success");
-    }
-
-    function renderCompanionUI() {
-        if (currentUser?.isTeacher) return;
-        let pairDiv = document.getElementById('pairStatus');
-        if (!pairDiv) return;
-        if (!currentUser.companionId) {
-            pairDiv.innerHTML = `<div style="text-align:center; padding:1rem;"><i class="fas fa-user-friends" style="font-size:2rem; color:#8b5cf6;"></i><p>🕊️ ليس لديك رفيقة بعد</p><button onclick="requestRandomCompanion()" style="background:#8b5cf6; color:white; border:none; border-radius:2rem; padding:0.5rem 1rem; cursor:pointer;">🎲 إنشاء غرفة جديدة</button><p style="font-size:0.7rem; margin-top:0.5rem;">✨ أنشئي غرفة وأرسلي الكود لرفيقتك</p></div>`;
-            return;
-        }
-        pairDiv.innerHTML = `<div style="background:linear-gradient(135deg,#f3e8ff,#e9d5ff); border-radius:1rem; padding:1rem; text-align:center;"><i class="fas fa-heart" style="color:#ec4899; font-size:1.5rem;"></i><p style="margin:0.5rem 0;">🌸 كود غرفتك 🌸</p><p style="font-size:1.3rem; font-weight:bold; color:#7c3aed;">${currentUser.companionId}</p><p style="font-size:0.7rem;">🤝 أرسلي هذا الكود لرفيقتك لتتمكنا من التواصل</p><button onclick="navigator.clipboard.writeText('${currentUser.companionId}')" style="background:#7c3aed; color:white; border:none; border-radius:2rem; padding:0.3rem 1rem; cursor:pointer;">📋 نسخ الكود</button></div>`;
-    }
-
     function startGoogleMeet(meetLink) { window.open(meetLink, '_blank'); showToast("📹 جاري فتح الجلسة", "success"); }
     
     function addPoints(amount, reason) { 
@@ -447,7 +464,7 @@
         try {
             await fetch(SCRIPT_URL, {
                 method: 'POST', mode: 'no-cors',
-                body: JSON.stringify({ action: "save", name: currentUser.name, email: currentUser.email, points: currentUser.points || 0, stations: currentUser.completedStations?.length || 0, companion: currentUser.companionId || "" })
+                body: JSON.stringify({ action: "save", name: currentUser.name, email: currentUser.email, points: currentUser.points || 0, stations: currentUser.completedStations?.length || 0, companion: currentUser.roomCode || "" })
             });
         } catch(e) {}
     }
@@ -480,7 +497,7 @@
     function completeStationLogic(id) { if(currentUser?.isTeacher) return; let s = stations.find(s => s.id === id); if(!s.available || s.completed) return; s.completed = true; currentUser.completedStations = currentUser.completedStations || []; if(!currentUser.completedStations.includes(id)) currentUser.completedStations.push(id); addPoints(25, `إكمال ${s.title}`); updateStationAvailability(); renderStations(); renderBadges(); saveStudentToSheet(); }
     function updateStationAvailability() { stations[0].available = !stations[0].completed; for(let i=1; i<stations.length; i++) stations[i].available = stations[i-1].completed && !stations[i].completed; }
     function renderStations() { let cont = document.getElementById('stationsList'); if(!cont) return; if(currentUser?.isTeacher) { cont.innerHTML = '<div style="padding:2rem; text-align:center;">👩‍🏫 للمعلمات</div>'; return; } cont.innerHTML = stations.map(s => `<div class="station-card ${s.completed ? 'completed' : (s.available ? 'available' : 'locked')}" onclick="${!s.available || s.completed ? '' : 'completeStationLogic('+s.id+')'}"><div><div style="font-size:1.5rem;">${s.icon}</div><div><strong>${s.title}</strong><br><small>${s.badge}</small></div></div><button class="complete-btn" ${!s.available || s.completed ? 'disabled' : ''}>${s.completed ? '✅ تم' : '✨ إكمال'}</button></div>`).join(''); }
-    function renderBadges() { let cont = document.getElementById('badgesGrid'); if(!cont) return; if(currentUser?.isTeacher) { cont.innerHTML = '<div style="padding:2rem; text-align:center;">👩‍🏫 الأوسمة</div>'; return; } let badges = [...stations.map(s => ({ name: s.badge, icon: s.icon, earned: s.completed })), { name: "وسام الرفيقة", icon: "💕", earned: !!(currentUser.companionId) }]; cont.innerHTML = badges.map(b => `<div class="badge-card ${b.earned ? 'earned' : ''}"><div class="badge-icon">${b.icon}</div><div>${b.name}</div>${b.earned ? '✅' : '🔒'}</div>`).join(''); }
+    function renderBadges() { let cont = document.getElementById('badgesGrid'); if(!cont) return; if(currentUser?.isTeacher) { cont.innerHTML = '<div style="padding:2rem; text-align:center;">👩‍🏫 الأوسمة</div>'; return; } let badges = [...stations.map(s => ({ name: s.badge, icon: s.icon, earned: s.completed })), { name: "وسام الرفيقة", icon: "💕", earned: !!(currentUser.roomCode) }]; cont.innerHTML = badges.map(b => `<div class="badge-card ${b.earned ? 'earned' : ''}"><div class="badge-icon">${b.icon}</div><div>${b.name}</div>${b.earned ? '✅' : '🔒'}</div>`).join(''); }
     function updateDashboard() { if(!currentUser) return; if(currentUser.isTeacher) { document.getElementById('displayUserName').innerHTML = currentUser.name + ' (معلمة)'; return; } let compCount = stations.filter(s => s.completed).length; document.getElementById('completedStations').innerHTML = compCount; document.getElementById('completedChallenges').innerHTML = currentUser.completedChallenges?.length || 0; document.getElementById('totalPointsDisplay').innerHTML = currentUser.points || 0; document.getElementById('progressFill').style.width = (compCount/5*100)+'%'; document.getElementById('progressPercent').innerHTML = Math.round(compCount/5*100)+'%'; document.getElementById('displayUserName').innerHTML = currentUser.name || ''; }
     function saveCurrentUser() { localStorage.setItem('currentUser', JSON.stringify(currentUser)); }
     
@@ -499,7 +516,7 @@
                 return; 
             } 
         } 
-        currentUser = { id: Date.now(), name: name, email: email, points: 0, completedStations: [], completedChallenges: [], lastChallenge: null, companionId: null, attended: [], isTeacher: false }; 
+        currentUser = { id: Date.now(), name: name, email: email, points: 0, completedStations: [], completedChallenges: [], lastChallenge: null, roomCode: null, companionName: null, attended: [], isTeacher: false }; 
         stations.forEach(s => { s.completed = false; s.available = (s.id === 0); }); 
         updateStationAvailability(); 
         finalizeLogin(); 
@@ -526,13 +543,13 @@
         } else { 
             document.querySelectorAll('.teacher-only').forEach(el => el.style.display = 'none'); 
             document.querySelectorAll('.student-only').forEach(el => el.style.display = 'flex'); 
-            await refreshMessages();
+            refreshMessagesDisplay();
             if(messageInterval) clearInterval(messageInterval);
-            messageInterval = setInterval(async () => {
-                if(currentUser && !currentUser.isTeacher && currentUser.companionId) {
-                    await refreshMessages();
+            messageInterval = setInterval(() => {
+                if(currentUser && !currentUser.isTeacher && currentUser.roomCode) {
+                    refreshMessagesDisplay();
                 }
-            }, 3000);
+            }, 2000);
         } 
         updateDashboard(); 
         renderStations(); 
@@ -568,7 +585,7 @@
             if(pg === 'stations') renderStations(); 
             if(pg === 'badges') renderBadges(); 
             if(pg === 'schedule') renderSchedule(); 
-            if(pg === 'companion' && !currentUser?.isTeacher) { renderCompanionUI(); refreshMessages(); }
+            if(pg === 'companion' && !currentUser?.isTeacher) { renderCompanionUI(); refreshMessagesDisplay(); }
             if(pg === 'teacherPanel' && currentUser?.isTeacher) loadAllStudents(); 
         }); 
     });
@@ -582,9 +599,24 @@
     });
     
     document.querySelector('.msg-type-btn[data-type="dua"]')?.classList.add('active');
-    document.getElementById('findCompanionBtn')?.addEventListener('click', requestRandomCompanion);
-    document.getElementById('sendMsgBtn')?.addEventListener('click', sendMessageToSheet);
-    document.getElementById('refreshChatBtn')?.addEventListener('click', refreshMessages);
+    document.getElementById('sendMsgBtn')?.addEventListener('click', sendMessage);
+    document.getElementById('refreshChatBtn')?.addEventListener('click', refreshMessagesDisplay);
+    
+    // Make functions global for buttons
+    window.createRoom = createRoom;
+    window.joinRoom = joinRoom;
+    window.leaveRoom = leaveRoom;
+    window.sendMessage = sendMessage;
+    window.refreshMessagesDisplay = refreshMessagesDisplay;
+    window.completeStationLogic = completeStationLogic;
+    window.spinWheel = spinWheel;
+    window.openSurprise = openSurprise;
+    window.completeDailyChallenge = completeDailyChallenge;
+    window.startGoogleMeet = startGoogleMeet;
+    window.markAttendance = markAttendance;
+    window.givePoints = givePoints;
+    window.loadAllStudents = loadAllStudents;
+    window.deleteStudent = deleteStudent;
     
     function restoreSession() { 
         let saved = localStorage.getItem('currentUser'); 
@@ -604,13 +636,13 @@
                 document.querySelectorAll('.teacher-only').forEach(el => el.style.display = 'none'); 
                 document.querySelectorAll('.student-only').forEach(el => el.style.display = 'flex'); 
                 updateDashboard(); renderStations(); renderSchedule(); renderBadges(); initWheel(); renderCompanionUI(); 
-                refreshMessages();
+                refreshMessagesDisplay();
                 if(messageInterval) clearInterval(messageInterval);
-                messageInterval = setInterval(async () => {
-                    if(currentUser && !currentUser.isTeacher && currentUser.companionId) {
-                        await refreshMessages();
+                messageInterval = setInterval(() => {
+                    if(currentUser && !currentUser.isTeacher && currentUser.roomCode) {
+                        refreshMessagesDisplay();
                     }
-                }, 3000);
+                }, 2000);
             } 
         } 
     }
