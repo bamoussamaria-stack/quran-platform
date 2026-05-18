@@ -174,7 +174,7 @@
                     </div>
                 </div>
                 <div class="messages-area" id="messagesList">
-                    <div style="padding:1rem; text-align:center; color:#a0aec0;">✨ سيظهر هنا对话 مع رفيقتك ✨</div>
+                    <div style="padding:1rem; text-align:center; color:#a0aec0;">✨ سيظهر هنا المحادثة مع رفيقتك ✨</div>
                 </div>
                 <div style="margin-top:1rem; display:flex; gap:0.5rem;">
                     <input type="text" id="messageInput" class="send-input" placeholder="اكتبي رسالتك...">
@@ -223,7 +223,6 @@
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJ1t-DZBLZLwK2tkS8l8alna0NsuKwQoLFPw_1pFi_VY_f2RY9yGWO77--2h64vptq/exec";
     const TEACHER_PASSWORD = "admin1446";
     const GOOGLE_MEET_LINK = "https://meet.google.com/nki-xmmx-kfu";
-    const STORAGE_KEY_MESSAGES = "companion_messages_";
 
     const challengesList = ["🤲 تصدقي بصدقة خفية","📿 أكثري من التكبير","🕌 صلي ركعتين بخشوع","💌 أرسلي رسالة لرفيقتك","📖 راجعي وردك","🌟 قومي الليل","💝 ساعدي محتاجاً","📝 اكتبي 10 أشياء تشكرين الله"];
 
@@ -252,25 +251,6 @@
     let wheelCanvas, ctx, segments = [], currentAngle = 0, spinning = false;
     let currentMsgType = "dua";
     let messageInterval = null;
-
-    // Helper functions for message storage in localStorage (shared between partners via pairing ID)
-    function getConversationKey(companionId) {
-        return STORAGE_KEY_MESSAGES + companionId;
-    }
-
-    function loadMessagesFromStorage(companionId) {
-        const key = getConversationKey(companionId);
-        const stored = localStorage.getItem(key);
-        return stored ? JSON.parse(stored) : [];
-    }
-
-    function saveMessageToStorage(companionId, message) {
-        const key = getConversationKey(companionId);
-        const messages = loadMessagesFromStorage(companionId);
-        messages.push(message);
-        localStorage.setItem(key, JSON.stringify(messages));
-        return messages;
-    }
 
     async function loadAllStudents() {
         const tbody = document.getElementById('studentsTableBody');
@@ -318,18 +298,49 @@
         } catch(e) { console.error("خطأ في الحفظ:", e); }
     }
 
-    async function updateCompanionInSheet(email, companionName, companionEmail) {
+    async function updateCompanionInSheet(email, companionName) {
         try {
             await fetch(SCRIPT_URL, {
                 method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     action: "update_companion", 
                     email: email, 
-                    companionName: companionName,
-                    companionEmail: companionEmail 
+                    companionName: companionName
                 })
             });
         } catch(e) { console.error("خطأ في تحديث الرفيقة:", e); }
+    }
+
+    // Save message to Google Sheets
+    async function saveMessageToSheet(message) {
+        try {
+            await fetch(SCRIPT_URL, {
+                method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: "save_message",
+                    fromEmail: message.fromEmail,
+                    fromName: message.fromName,
+                    toEmail: message.toEmail,
+                    text: message.text,
+                    type: message.type,
+                    timestamp: message.timestamp,
+                    companionId: message.companionId
+                })
+            });
+        } catch(e) { console.error("خطأ في حفظ الرسالة:", e); }
+    }
+
+    // Load messages from Google Sheets
+    async function loadMessagesFromSheet(companionEmail, companionId) {
+        try {
+            const url = `${SCRIPT_URL}?action=get_messages&userEmail=${currentUser.email}&companionEmail=${companionEmail}&companionId=${companionId}`;
+            const response = await fetch(url);
+            const messages = await response.json();
+            return messages || [];
+        } catch(e) {
+            console.error("خطأ في تحميل الرسائل:", e);
+            return [];
+        }
     }
 
     async function givePoints(email, name, currentPoints) {
@@ -380,20 +391,19 @@
             currentUser.companionName = selectedCompanion.name;
             currentUser.companionEmail = selectedCompanion.email;
             
-            await updateCompanionInSheet(currentUser.email, selectedCompanion.name, selectedCompanion.email);
-            await updateCompanionInSheet(selectedCompanion.email, currentUser.name, currentUser.email);
+            await updateCompanionInSheet(currentUser.email, selectedCompanion.name);
+            await updateCompanionInSheet(selectedCompanion.email, currentUser.name);
             
-            // Send welcome message to the conversation
-            const welcomeMessage = {
-                id: Date.now(),
+            // Send welcome message
+            await saveMessageToSheet({
                 fromEmail: currentUser.email,
                 fromName: currentUser.name,
                 toEmail: selectedCompanion.email,
                 text: `السلام عليكم رفيقة عرفة! 🕊️ سعيدة برحلتنا معًا إلى الله 🤍`,
                 type: "kind",
-                timestamp: new Date().toISOString()
-            };
-            saveMessageToStorage(pairId, welcomeMessage);
+                timestamp: new Date().toISOString(),
+                companionId: pairId
+            });
             
             saveCurrentUser();
             await refreshMessages();
@@ -405,11 +415,11 @@
 
     async function refreshMessages() {
         if(currentUser?.isTeacher) return;
-        if(!currentUser.companionId) {
+        if(!currentUser.companionId || !currentUser.companionEmail) {
             renderMessagesList([]);
             return;
         }
-        const messages = loadMessagesFromStorage(currentUser.companionId);
+        const messages = await loadMessagesFromSheet(currentUser.companionEmail, currentUser.companionId);
         renderMessagesList(messages);
     }
 
@@ -436,12 +446,7 @@
     }
 
     function getMessageTypeIcon(type) {
-        const icons = {
-            'dua': '🤲',
-            'motivation': '🔥',
-            'achievement': '⭐',
-            'kind': '💕'
-        };
+        const icons = { 'dua': '🤲', 'motivation': '🔥', 'achievement': '⭐', 'kind': '💕' };
         return icons[type] || '💬';
     }
 
@@ -455,22 +460,20 @@
         if(currentUser?.isTeacher) { showToast("المعلمة لا يمكنها إرسال رسائل", "error"); return; }
         let text = document.getElementById('messageInput')?.value.trim();
         if(!text) { showToast("اكتبي رسالتك أولاً", "error"); return; }
-        if(!currentUser.companionId) {
+        if(!currentUser.companionId || !currentUser.companionEmail) {
             showToast("ليس لديك رفيقة! اطلبي رفيقة أولاً", "error");
             return;
         }
         
-        const newMessage = {
-            id: Date.now(),
+        await saveMessageToSheet({
             fromEmail: currentUser.email,
             fromName: currentUser.name,
             toEmail: currentUser.companionEmail,
             text: text,
             type: currentMsgType,
-            timestamp: new Date().toISOString()
-        };
-        
-        saveMessageToStorage(currentUser.companionId, newMessage);
+            timestamp: new Date().toISOString(),
+            companionId: currentUser.companionId
+        });
         
         addPoints(2, "إرسال رسالة لرفيقتك");
         document.getElementById('messageInput').value = '';
@@ -499,7 +502,7 @@
     }
     
     function renderSchedule() { 
-        let html = `<div class="schedule-table-wrapper"><table class="schedule-table"><thead>骨头<th>اليوم</th><th>التاريخ الهجري</th><th>التاريخ الميلادي</th><th>المعلمة</th><th>موضوع الحلقة</th><th>التوقيت</th><th>بدء الجلسة</th><th>تسجيل الحضور</th></thead><tbody>`;
+        let html = `<div class="schedule-table-wrapper"><table class="schedule-table"><thead> bon<th>اليوم</th><th>التاريخ الهجري</th><th>التاريخ الميلادي</th><th>المعلمة</th><th>موضوع الحلقة</th><th>التوقيت</th><th>بدء الجلسة</th><th>تسجيل الحضور</th></thead><tbody>`;
         scheduleData.forEach((s, idx) => { 
             let attended = currentUser?.attended?.includes(idx); 
             html += `<tr>
@@ -511,7 +514,7 @@
                     <td>🕰️ ${s.time}</td>
                     <td><button onclick="startGoogleMeet('${s.meetLink}')" class="start-meet-btn">بدء الجلسة</button></td>
                     <td><button onclick="markAttendance(${idx})" class="meet-btn-small ${attended ? 'disabled' : ''}" ${attended ? 'disabled' : ''}>${attended ? '✅ تم الحضور' : 'تسجيل حضور (+5)'}</button></td>
-                </tr>`; 
+                </tr>`;
         }); 
         html += `</tbody></table></div>`; 
         document.getElementById('fullSchedule').innerHTML = html; 
@@ -621,7 +624,7 @@
                 if(currentUser && !currentUser.isTeacher && currentUser.companionId) {
                     await refreshMessages();
                 }
-            }, 2000);
+            }, 3000);
         } 
         updateDashboard(); 
         renderStations(); 
@@ -674,7 +677,8 @@
     });
     
     // Set default active message type
-    document.querySelector('.msg-type-btn[data-type="dua"]')?.classList.add('active');
+    const defaultBtn = document.querySelector('.msg-type-btn[data-type="dua"]');
+    if(defaultBtn) defaultBtn.classList.add('active');
     
     document.getElementById('findCompanionBtn')?.addEventListener('click', requestRandomCompanion);
     document.getElementById('sendMsgBtn')?.addEventListener('click', sendMessage);
@@ -716,7 +720,7 @@
                     if(currentUser && !currentUser.isTeacher && currentUser.companionId) {
                         await refreshMessages();
                     }
-                }, 2000);
+                }, 3000);
             } 
         } 
     }
