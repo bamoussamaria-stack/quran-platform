@@ -9,181 +9,105 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* ========== RESET & BASE ========== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
-            background: linear-gradient(135deg, #6b21a5 0%, #9333ea 100%);
-            min-height: 100vh;
-            color: #2d3748;
-        }
-
-        /* ========== NAVBAR ========== */
-        .top-navbar {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            padding: 0.75rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
+        body { font-family: 'Cairo', sans-serif; background: linear-gradient(135deg, #6b21a5 0%, #9333ea 100%); min-height: 100vh; color: #2d3748; }
+        .top-navbar { background: rgba(255,255,255,0.98); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 1000; padding: 0.75rem 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
         .logo-area { display: flex; align-items: center; gap: 1rem; }
-        .logo-icon {
-            width: 45px; height: 45px;
-            background: linear-gradient(135deg, #7c3aed, #a855f7);
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.5rem; color: white;
-        }
+        .logo-icon { width: 45px; height: 45px; background: linear-gradient(135deg, #7c3aed, #a855f7); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white; }
         .logo-text h2 { font-size: 1.2rem; color: #5b21b6; margin: 0; }
         .logo-text p { font-size: 0.7rem; color: #7c3aed; margin: 0; }
-        
         .nav-links { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-        .nav-link {
-            padding: 0.5rem 1rem;
-            border-radius: 2rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            color: #6b21a5;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+        .nav-link { padding: 0.5rem 1rem; border-radius: 2rem; cursor: pointer; transition: all 0.3s ease; color: #6b21a5; font-weight: 500; display: flex; align-items: center; gap: 0.5rem; }
         .nav-link:hover { background: #f3e8ff; transform: translateY(-2px); }
-        .nav-link.active { background: linear-gradient(135deg, #7c3aed, #a855f7); color: white; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4); }
-        
+        .nav-link.active { background: linear-gradient(135deg, #7c3aed, #a855f7); color: white; box-shadow: 0 4px 15px rgba(124,58,237,0.4); }
         .user-info { display: flex; align-items: center; gap: 1rem; background: #f7fafc; padding: 0.5rem 1rem; border-radius: 2rem; }
         .user-avatar { width: 35px; height: 35px; background: linear-gradient(135deg, #7c3aed, #a855f7); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; }
         .user-name { font-weight: 600; color: #5b21b6; }
         .logout-btn { background: none; border: none; color: #e53e3e; cursor: pointer; font-size: 1.1rem; padding: 0.25rem 0.5rem; border-radius: 0.5rem; transition: all 0.3s; }
         .logout-btn:hover { background: #fed7d7; }
-
-        /* ========== MAIN CONTAINER ========== */
         .main-container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
-
-        /* ========== LOGIN OVERLAY ========== */
-        .login-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(135deg, #6b21a5, #9333ea);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-        }
-        .login-card {
-            background: white;
-            border-radius: 2rem;
-            padding: 3rem;
-            max-width: 450px;
-            width: 90%;
-            text-align: center;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-            animation: slideUp 0.5s ease;
-        }
+        .login-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #6b21a5, #9333ea); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+        .login-card { background: white; border-radius: 2rem; padding: 3rem; max-width: 450px; width: 90%; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.3); animation: slideUp 0.5s ease; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         .login-icon { width: 100px; height: 100px; background: linear-gradient(135deg, #7c3aed, #a855f7); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 3rem; color: white; }
         .login-input { width: 100%; padding: 1rem; margin: 0.75rem 0; border: 2px solid #e2e8f0; border-radius: 1rem; font-size: 1rem; font-family: 'Cairo', sans-serif; }
-        .login-input:focus { outline: none; border-color: #a855f7; box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1); }
+        .login-input:focus { outline: none; border-color: #a855f7; box-shadow: 0 0 0 3px rgba(168,85,247,0.1); }
         .login-btn { width: 100%; padding: 1rem; background: linear-gradient(135deg, #7c3aed, #a855f7); color: white; border: none; border-radius: 1rem; font-size: 1.1rem; font-weight: 600; cursor: pointer; margin-top: 1rem; }
         .teacher-login-link { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; font-size: 0.9rem; color: #718096; cursor: pointer; transition: all 0.3s; }
         .teacher-login-link:hover { color: #a855f7; }
-
-        /* ========== STATS GRID ========== */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .stat-card { background: white; border-radius: 1.5rem; padding: 1.5rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: all 0.3s; }
+        .stat-card { background: white; border-radius: 1.5rem; padding: 1.5rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s; }
         .stat-icon { width: 60px; height: 60px; background: linear-gradient(135deg, #7c3aed, #a855f7); border-radius: 1rem; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: white; }
-
-        /* ========== COUNTDOWN ========== */
         .countdown-card { background: linear-gradient(135deg, #6b21a5, #9333ea); border-radius: 1.5rem; padding: 2rem; color: white; text-align: center; margin-bottom: 2rem; }
         .countdown-timer { display: flex; justify-content: center; gap: 2rem; margin-top: 1rem; flex-wrap: wrap; }
-        .countdown-number { font-size: 2rem; font-weight: 800; background: rgba(255, 255, 255, 0.2); padding: 0.5rem 1rem; border-radius: 1rem; min-width: 70px; }
-
-        /* ========== SCHEDULE TABLE ========== */
+        .countdown-number { font-size: 2rem; font-weight: 800; background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 1rem; min-width: 70px; }
         .schedule-table-wrapper { overflow-x: auto; border-radius: 1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-top: 1rem; }
         .schedule-table { width: 100%; border-collapse: collapse; background: white; font-size: 0.85rem; }
         .schedule-table th { background: linear-gradient(135deg, #7c3aed, #a855f7); color: white; padding: 12px 8px; }
         .schedule-table td { padding: 10px 8px; border-bottom: 1px solid #e2e8f0; text-align: center; }
-        .meet-btn-small { background: #7c3aed; border: none; padding: 0.3rem 0.8rem; border-radius: 0.5rem; color: white; cursor: pointer; font-size: 0.75rem; }
-        .meet-btn-small:hover { background: #a855f7; }
-        .meet-btn-small.disabled { background: #a0aec0; cursor: not-allowed; }
-
-        /* ========== STATIONS ========== */
-        .station-card { background: white; border-radius: 1rem; padding: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 0.75rem; cursor: pointer; }
+        .meet-btn-small { background: #7c3aed; border: none; padding: 0.3rem 0.8rem; border-radius: 0.5rem; color: white; cursor: pointer; font-size: 0.75rem; text-decoration: none; display: inline-block; transition: all 0.3s; }
+        .meet-btn-small:hover { background: #a855f7; transform: scale(1.02); }
+        .meet-btn-small.disabled { background: #a0aec0; cursor: not-allowed; transform: none; }
+        .station-card { background: white; border-radius: 1rem; padding: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 0.75rem; cursor: pointer; transition: all 0.3s; }
         .station-card.available { border: 2px solid #a855f7; background: #faf5ff; }
-        .station-card.available:hover { transform: translateX(-5px); box-shadow: 0 5px 15px rgba(168, 85, 247, 0.2); }
+        .station-card.available:hover { transform: translateX(-5px); box-shadow: 0 5px 15px rgba(168,85,247,0.2); }
         .station-card.completed { background: #f0fff4; border: 2px solid #48bb78; cursor: default; }
-        .complete-btn { padding: 0.5rem 1rem; border: none; border-radius: 0.5rem; cursor: pointer; font-weight: 600; background: #7c3aed; color: white; }
-        .complete-btn:disabled { background: #cbd5e0; cursor: not-allowed; }
-
-        /* ========== BADGES ========== */
+        .complete-btn { padding: 0.5rem 1rem; border: none; border-radius: 0.5rem; cursor: pointer; font-weight: 600; background: #7c3aed; color: white; transition: all 0.3s; }
+        .complete-btn:hover { background: #a855f7; transform: scale(1.02); }
+        .complete-btn:disabled { background: #cbd5e0; cursor: not-allowed; transform: none; }
         .badges-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; }
         .badge-card { background: white; border-radius: 1rem; padding: 1rem; text-align: center; }
         .badge-card.earned { background: linear-gradient(135deg, #f3e8ff, #e9d5ff); }
-
-        /* ========== PAGES ========== */
         .page { display: none; animation: fadeIn 0.5s ease; }
         .page.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* ========== TOAST MESSAGES ========== */
         .toast-message { position: fixed; bottom: 2rem; right: 2rem; background: white; padding: 1rem 1.5rem; border-radius: 0.5rem; display: flex; align-items: center; gap: 0.5rem; z-index: 1500; animation: slideIn 0.3s ease; border-right: 4px solid #a855f7; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-        /* ========== PROGRESS ========== */
         .progress-bar-container { background: #e2e8f0; border-radius: 1rem; height: 10px; overflow: hidden; }
         .progress-bar-fill { background: linear-gradient(90deg, #7c3aed, #a855f7); width: 0%; height: 100%; transition: width 0.5s ease; }
-
-        /* ========== MODAL ========== */
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 3000; }
         .modal-content { background: white; border-radius: 1.5rem; padding: 2rem; max-width: 450px; width: 90%; text-align: center; }
-
-        /* ========== WHEEL ========== */
         .wheel-section { background: white; border-radius: 1.5rem; padding: 2rem; text-align: center; }
         .wheel-container canvas { max-width: 100%; border-radius: 50%; box-shadow: 0 10px 30px rgba(0,0,0,0.2); cursor: pointer; }
-        .spin-button, .surprise-button { margin-top: 1rem; padding: 0.75rem 1.5rem; border: none; border-radius: 3rem; font-weight: 600; cursor: pointer; }
+        .spin-button, .surprise-button { margin-top: 1rem; padding: 0.75rem 1.5rem; border: none; border-radius: 3rem; font-weight: 600; cursor: pointer; transition: all 0.3s; }
         .spin-button { background: linear-gradient(135deg, #7c3aed, #a855f7); color: white; }
+        .spin-button:hover { transform: scale(1.02); }
         .surprise-button { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; margin-right: 1rem; }
-
-        /* ========== COMPANION ========== */
+        .surprise-button:hover { transform: scale(1.02); }
         .companion-container { background: linear-gradient(145deg, #faf5ff, #f3e8ff); border-radius: 1.5rem; padding: 1.5rem; margin-bottom: 1.5rem; }
         .messages-area { max-height: 300px; overflow-y: auto; margin-top: 1rem; background: white; border-radius: 1rem; padding: 0.5rem; }
         .message-item { background: #f3e8ff; padding: 0.6rem; border-radius: 1rem; margin-bottom: 0.6rem; border-right: 3px solid #a855f7; }
+        .message-sender { font-weight: bold; color: #6b46c1; font-size: 0.8rem; margin-bottom: 0.2rem; }
+        .message-text { font-size: 0.9rem; }
+        .message-time { font-size: 0.7rem; color: #a0aec0; margin-top: 0.2rem; }
         .msg-type-btn { padding: 0.3rem 1rem; border-radius: 2rem; border: 1px solid #c084fc; background: white; cursor: pointer; transition: all 0.3s; }
-        .msg-type-btn.active { background: #a855f7; color: white; }
-        .send-input { padding: 0.5rem 1rem; border-radius: 2rem; border: 1px solid #e9d5ff; font-family: 'Cairo', sans-serif; flex: 1; }
-
-        /* ========== TEACHER DASHBOARD ========== */
+        .msg-type-btn:hover { background: #f3e8ff; }
+        .msg-type-btn.active { background: #a855f7; color: white; border-color: #a855f7; }
+        .send-input { padding: 0.5rem 1rem; border-radius: 2rem; border: 1px solid #e9d5ff; font-family: 'Cairo', sans-serif; flex: 1; transition: all 0.3s; }
+        .send-input:focus { outline: none; border-color: #a855f7; }
+        .send-btn { background: #ec4899; color: white; border: none; border-radius: 2rem; padding: 0.5rem 1rem; cursor: pointer; transition: all 0.3s; }
+        .send-btn:hover { transform: scale(1.02); }
         .teacher-dashboard { background: white; border-radius: 1.5rem; padding: 1.5rem; }
         .students-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
         .students-table th, .students-table td { border: 1px solid #e2e8f0; padding: 0.75rem; text-align: center; font-size: 0.85rem; }
         .students-table th { background: linear-gradient(135deg, #7c3aed, #a855f7); color: white; }
-        .teacher-actions button { margin: 0.2rem; padding: 0.3rem 0.6rem; border: none; border-radius: 0.5rem; cursor: pointer; font-size: 0.7rem; }
+        .teacher-actions button { margin: 0.2rem; padding: 0.3rem 0.6rem; border: none; border-radius: 0.5rem; cursor: pointer; font-size: 0.7rem; transition: all 0.3s; }
         .give-points-btn { background: #10b981; color: white; }
+        .give-points-btn:hover { transform: scale(1.02); }
         .delete-student-btn { background: #c53030; color: white; }
-
-        /* ========== POINTS GUIDE ========== */
+        .delete-student-btn:hover { transform: scale(1.02); }
         .points-guide { background: linear-gradient(135deg, #faf5ff, #f3e8ff); border-radius: 1.5rem; padding: 1.5rem; margin-bottom: 1.5rem; border-right: 6px solid #a855f7; }
         .points-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem; }
         .points-item { background: white; border-radius: 1rem; padding: 0.8rem; display: flex; align-items: center; gap: 0.8rem; }
         .points-icon { width: 40px; height: 40px; background: #a855f7; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; }
         .sheet-note { background: #10b981; color: white; padding: 0.8rem; border-radius: 1rem; margin-bottom: 1rem; text-align: center; font-size: 0.85rem; }
-
-        /* ========== RESPONSIVE ========== */
+        .start-meet-btn { background: #dc2626; color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 0.5rem; cursor: pointer; font-size: 0.75rem; transition: all 0.3s; margin-right: 0.5rem; }
+        .start-meet-btn:hover { background: #b91c1c; transform: scale(1.02); }
         @media (max-width: 768px) { .schedule-table { font-size: 0.7rem; } .points-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
-<!-- ==================== LOGIN OVERLAY ==================== -->
 <div id="loginOverlay" class="login-overlay">
     <div class="login-card">
         <div class="login-icon"><i class="fas fa-mosque"></i></div>
@@ -199,13 +123,9 @@
     </div>
 </div>
 
-<!-- ==================== MAIN APP ==================== -->
 <div id="mainApp" style="display: none;">
     <div class="top-navbar">
-        <div class="logo-area">
-            <div class="logo-icon"><i class="fas fa-mosque"></i></div>
-            <div class="logo-text"><h2>مقرأة الزهراء</h2><p>🌙 ومضات من شعائر الله</p></div>
-        </div>
+        <div class="logo-area"><div class="logo-icon"><i class="fas fa-mosque"></i></div><div class="logo-text"><h2>مقرأة الزهراء</h2><p>🌙 ومضات من شعائر الله</p></div></div>
         <div class="nav-links">
             <div class="nav-link active" data-page="home"><i class="fas fa-home"></i> الرئيسية</div>
             <div class="nav-link student-only" data-page="companion"><i class="fas fa-female"></i> رفيقة الطريق</div>
@@ -215,15 +135,9 @@
             <div class="nav-link" data-page="badges"><i class="fas fa-medal"></i> الأوسمة</div>
             <div class="nav-link teacher-only" data-page="teacherPanel" style="display:none;"><i class="fas fa-chalkboard-teacher"></i> لوحة المعلمة</div>
         </div>
-        <div class="user-info">
-            <div class="user-avatar"><i class="fas fa-user"></i></div>
-            <span class="user-name" id="displayUserName"></span>
-            <button class="logout-btn" onclick="logoutUser()"><i class="fas fa-sign-out-alt"></i></button>
-        </div>
+        <div class="user-info"><div class="user-avatar"><i class="fas fa-user"></i></div><span class="user-name" id="displayUserName"></span><button class="logout-btn" onclick="logoutUser()"><i class="fas fa-sign-out-alt"></i></button></div>
     </div>
-
     <div class="main-container">
-        <!-- ==================== HOME PAGE ==================== -->
         <div id="homePage" class="page active">
             <div class="stats-grid">
                 <div class="stat-card"><div class="stat-icon"><i class="fas fa-check-circle"></i></div><div><h3 id="completedStations">0</h3><p>محطات مكتملة</p></div></div>
@@ -231,7 +145,6 @@
                 <div class="stat-card"><div class="stat-icon"><i class="fas fa-heart"></i></div><div><h3 id="companionPoints">0</h3><p>نقاط الرفيقة</p></div></div>
                 <div class="stat-card"><div class="stat-icon"><i class="fas fa-medal"></i></div><div><h3 id="totalPointsDisplay">0</h3><p>إجمالي النقاط</p></div></div>
             </div>
-
             <div class="points-guide">
                 <h3 style="color:#6b21a5;"><i class="fas fa-coins"></i> كيف تجمعين النقاط؟</h3>
                 <div class="points-grid">
@@ -243,26 +156,11 @@
                     <div class="points-item"><div class="points-icon">⭐</div><div><h4>مكافأة المعلمة</h4><p>+5 إلى +15</p></div></div>
                 </div>
             </div>
-
-            <div class="countdown-card">
-                <h2><i class="fas fa-hourglass-half"></i> العد التنازلي</h2>
-                <div class="countdown-timer" id="countdownTimer">
-                    <div class="countdown-item"><div class="countdown-number" id="daysLeft">--</div><div class="countdown-label">يوم</div></div>
-                    <div class="countdown-item"><div class="countdown-number" id="hoursLeft">--</div><div class="countdown-label">ساعة</div></div>
-                    <div class="countdown-item"><div class="countdown-number" id="minutesLeft">--</div><div class="countdown-label">دقيقة</div></div>
-                    <div class="countdown-item"><div class="countdown-number" id="secondsLeft">--</div><div class="countdown-label">ثانية</div></div>
-                </div>
-            </div>
-
-            <div class="progress-section">
-                <div style="display:flex; justify-content:space-between;"><span>تقدم الرحلة</span><span id="progressPercent">0%</span></div>
-                <div class="progress-bar-container"><div class="progress-bar-fill" id="progressFill"></div></div>
-            </div>
-
+            <div class="countdown-card"><h2><i class="fas fa-hourglass-half"></i> العد التنازلي</h2><div class="countdown-timer" id="countdownTimer"><div class="countdown-item"><div class="countdown-number" id="daysLeft">--</div><div class="countdown-label">يوم</div></div><div class="countdown-item"><div class="countdown-number" id="hoursLeft">--</div><div class="countdown-label">ساعة</div></div><div class="countdown-item"><div class="countdown-number" id="minutesLeft">--</div><div class="countdown-label">دقيقة</div></div><div class="countdown-item"><div class="countdown-number" id="secondsLeft">--</div><div class="countdown-label">ثانية</div></div></div></div>
+            <div class="progress-section"><div style="display:flex; justify-content:space-between;"><span>تقدم الرحلة</span><span id="progressPercent">0%</span></div><div class="progress-bar-container"><div class="progress-bar-fill" id="progressFill"></div></div></div>
             <div id="homeSchedule"></div>
         </div>
 
-        <!-- ==================== COMPANION PAGE ==================== -->
         <div id="companionPage" class="page">
             <div class="companion-container">
                 <h2 style="color:#6b21a5;"><i class="fas fa-hand-holding-heart"></i> رفيقة الطريق</h2>
@@ -274,17 +172,16 @@
                         <button class="msg-type-btn" data-type="motivation">🔥 تحفيز</button>
                         <button class="msg-type-btn" data-type="achievement">⭐ إنجاز</button>
                         <button class="msg-type-btn" data-type="kind">💕 رسالة لطيفة</button>
-                        <button id="findCompanionBtn" style="background:#8b5cf6; color:white; border:none; border-radius:2rem; padding:0.3rem 1rem; cursor:pointer;">🔍 طلب رفيقة</button>
+                        <button id="findCompanionBtn" style="background:#8b5cf6; color:white; border:none; border-radius:2rem; padding:0.3rem 1rem; cursor:pointer;">🎲 طلب رفيقة عشوائية</button>
                     </div>
                     <div style="display:flex; gap:0.5rem;">
                         <input type="text" id="messageInput" class="send-input" placeholder="اكتبي رسالتك...">
-                        <button id="sendMsgBtn" style="background:#ec4899; color:white; border:none; border-radius:2rem; padding:0.5rem 1rem; cursor:pointer;">أرسلي</button>
+                        <button id="sendMsgBtn" class="send-btn">أرسلي</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- ==================== CHALLENGES PAGE ==================== -->
         <div id="challengesPage" class="page">
             <div class="wheel-section">
                 <h2><i class="fas fa-gamepad"></i> عجلة التحديات</h2>
@@ -294,21 +191,15 @@
                 <div id="challengeResult" style="display:none; margin-top:1rem; padding:1rem; background:#fef3c7; border-radius:1rem;">
                     <h3>تحديك اليوم</h3>
                     <div id="challengeDisplay"></div>
-                    <button onclick="completeDailyChallenge()" style="background:#10b981; color:white; border:none; padding:0.5rem 1rem; border-radius:0.5rem;">أنجزت التحدي</button>
+                    <button onclick="completeDailyChallenge()" style="background:#10b981; color:white; border:none; padding:0.5rem 1rem; border-radius:0.5rem; cursor:pointer;">أنجزت التحدي</button>
                 </div>
             </div>
         </div>
 
-        <!-- ==================== STATIONS PAGE ==================== -->
         <div id="stationsPage" class="page"><div class="stations-list" id="stationsList"></div></div>
-
-        <!-- ==================== SCHEDULE PAGE ==================== -->
         <div id="schedulePage" class="page"><div id="fullSchedule"></div></div>
-
-        <!-- ==================== BADGES PAGE ==================== -->
         <div id="badgesPage" class="page"><div class="badges-grid" id="badgesGrid"></div></div>
-
-        <!-- ==================== TEACHER PANEL PAGE ==================== -->
+        
         <div id="teacherPanelPage" class="page">
             <div class="teacher-dashboard">
                 <h2><i class="fas fa-chalkboard-teacher"></i> لوحة تحكم المعلمة</h2>
@@ -317,9 +208,7 @@
                 </div>
                 <div style="overflow-x: auto;">
                     <table class="students-table" id="studentsTable">
-                        <thead>
-                            <tr><th>الاسم</th><th>البريد</th><th>المحطات</th><th>النقاط</th><th>👭 الرفيقة</th><th>إجراءات</th></tr>
-                        </thead>
+                        <thead><tr><th>الاسم</th><th>البريد</th><th>المحطات</th><th>النقاط</th><th>👭 الرفيقة</th><th>إجراءات</th></tr></thead>
                         <tbody id="studentsTableBody"><tr><td colspan="6">⏳ جاري تحميل البيانات...</td></tr></tbody>
                     </table>
                 </div>
@@ -335,14 +224,12 @@
     const TEACHER_PASSWORD = "admin1446";
     const GOOGLE_MEET_LINK = "https://meet.google.com/nki-xmmx-kfu";
 
-    // ==================== CHALLENGES LIST ====================
     const challengesList = [
         "🤲 تصدقي بصدقة خفية", "📿 أكثري من التكبير", "🕌 صلي ركعتين بخشوع",
         "💌 أرسلي رسالة لرفيقتك", "📖 راجعي وردك", "🌟 قومي الليل",
         "💝 ساعدي محتاجاً", "📝 اكتبي 10 أشياء تشكرين الله"
     ];
 
-    // ==================== STATIONS ====================
     let stations = [
         { id:0, title:"🌱 المحطة التمهيدية", badge:"وسام البداية", completed:false, available:true, icon:"🌱" },
         { id:1, title:"🕊️ محطة السعي", badge:"وسام السعي", completed:false, available:false, icon:"🕊️" },
@@ -351,7 +238,6 @@
         { id:4, title:"🤍 محطة عرفة", badge:"وسام عرفة", completed:false, available:false, icon:"🤍" }
     ];
 
-    // ==================== SCHEDULE DATA (UPDATED) ====================
     const scheduleData = [
         { day: "الإثنين", hijriDate: "1 ذي الحجة 1447ه", gregorianDate: "18 مايو 2026م", teacher: "أم أسيد", topic: "كيف نستقبل أحب الأيام إلى الله؟", time: "20:30 مساءً", meetLink: GOOGLE_MEET_LINK },
         { day: "الثلاثاء", hijriDate: "2 ذي الحجة 1447ه", gregorianDate: "19 مايو 2026م", teacher: "سمية", topic: "رحلة الحج ومناسكه", time: "بعد صلاة العشاء", meetLink: GOOGLE_MEET_LINK },
@@ -363,7 +249,6 @@
         { day: "الإثنين", hijriDate: "8 ذي الحجة 1447ه", gregorianDate: "25 مايو 2026م", teacher: "جهينة", topic: "يوم عرفة… يوم لا يشبه الأيام", time: "ليلاً", meetLink: GOOGLE_MEET_LINK }
     ];
 
-    // ==================== GLOBAL VARIABLES ====================
     let currentUser = null;
     let allStudents = [];
     let currentDailyChallenge = null;
@@ -384,13 +269,17 @@
             }
             let html = '';
             students.forEach(s => {
-                html += `<tr><td><strong>${s.name}</strong></td><td>${s.email}</td><td>${s.stations || 0}/5</td>
-                         <td><span style="color:#6b21a5; font-weight:bold;">${s.points || 0}</span></td>
-                         <td style="color:#7c3aed;">👭 ${s.companion || 'لا يوجد'}</td>
-                         <td class="teacher-actions">
-                            <button class="give-points-btn" onclick="givePoints('${s.email}', '${s.name}', ${s.points || 0})">🎁 تشجيع</button>
-                            <button class="delete-student-btn" onclick="deleteStudent('${s.email}', '${s.name}')">🗑️ حذف</button>
-                         </td></tr>`;
+                html += `<tr>
+                    <td><strong>${s.name}</strong></td>
+                    <td>${s.email}</td>⑯
+                    <td>${s.stations || 0}/5</td>⑯
+                    <td><span style="color:#6b21a5; font-weight:bold;">${s.points || 0}</span></td>⑯
+                    <td style="color:#7c3aed;">👭 ${s.companion || 'لا يوجد'}</td>⑯
+                    <td class="teacher-actions">
+                        <button class="give-points-btn" onclick="givePoints('${s.email}', '${s.name}', ${s.points || 0})">🎁 تشجيع</button>
+                        <button class="delete-student-btn" onclick="deleteStudent('${s.email}', '${s.name}')">🗑️ حذف</button>
+                    </td>⑯
+                </tr>`;
             });
             tbody.innerHTML = html;
             showToast(`✅ تم تحميل ${students.length} طالبة`, "success");
@@ -433,11 +322,170 @@
         }
     }
 
+    // ==================== COMPANION FUNCTIONS (Random, No Duplicate) ====================
+    async function requestRandomCompanion() {
+        if(currentUser?.isTeacher) {
+            showToast("المعلمة لا يمكنها طلب رفيقة", "error");
+            return;
+        }
+        
+        if(currentUser.companionId && currentUser.companionName) {
+            showToast(`لديكِ رفيقة بالفعل: ${currentUser.companionName} 💕`, "error");
+            return;
+        }
+        
+        showToast("🔄 جاري البحث عن رفيقة عشوائية لكِ...", "info");
+        
+        try {
+            const response = await fetch(SCRIPT_URL);
+            const allStudentsData = await response.json();
+            
+            const availableStudents = allStudentsData.filter(s => 
+                s.email !== currentUser.email && 
+                (!s.companion || s.companion === "" || s.companion === "لا يوجد" || s.companion === "null") &&
+                s.name !== "المعلمة"
+            );
+            
+            if(availableStudents.length === 0) {
+                showToast("😔 لا توجد طالبات متاحات حالياً. انتظري حتى تسجل أخريات!", "error");
+                return;
+            }
+            
+            const randomIndex = Math.floor(Math.random() * availableStudents.length);
+            const selectedCompanion = availableStudents[randomIndex];
+            
+            // Create pair
+            currentUser.companionId = Date.now() + Math.random();
+            currentUser.companionName = selectedCompanion.name;
+            currentUser.companionEmail = selectedCompanion.email;
+            
+            // Update the companion in Google Sheets
+            await fetch(SCRIPT_URL, {
+                method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    action: "update_companion", 
+                    email: currentUser.email, 
+                    companionName: selectedCompanion.name 
+                })
+            });
+            
+            // Add welcome message
+            currentUser.messages = currentUser.messages || [];
+            currentUser.messages.push({
+                id: Date.now(), from: 'me', text: `السلام عليكم رفيقة عرفة! 🕊️ سعيدة برحلتنا معًا إلى الله 🤍`,
+                type: "kind", date: new Date().toISOString()
+            });
+            
+            await saveStudentToSheet(currentUser);
+            saveCurrentUser();
+            renderCompanionUI();
+            showToast(`🎉 أصبحت ${selectedCompanion.name} رفيقتك إلى عرفة! 🎉`, "success");
+            
+            if(document.getElementById('teacherPanelPage').classList.contains('active')) {
+                loadAllStudents();
+            }
+        } catch(error) {
+            console.error("خطأ:", error);
+            showToast("حدث خطأ في البحث عن رفيقة", "error");
+        }
+    }
+
+    function renderCompanionUI() {
+        if(currentUser?.isTeacher) return;
+        let pairDiv = document.getElementById('pairStatus');
+        let msgsDiv = document.getElementById('messagesList');
+        if(!pairDiv) return;
+        
+        if(!currentUser.companionId || !currentUser.companionName) {
+            pairDiv.innerHTML = `
+                <div style="text-align: center; padding: 1rem;">
+                    <i class="fas fa-user-friends" style="font-size: 2rem; color: #8b5cf6;"></i>
+                    <p style="margin: 0.5rem 0;">🕊️ ليس لديك رفيقة بعد</p>
+                    <p style="font-size: 0.8rem; color: #718096;">اضغطي "طلب رفيقة عشوائية" للانضمام إلى رحلة "رفيقتان إلى عرفة"</p>
+                    <p style="font-size: 0.7rem; color: #10b981;">✨ سيتم اختيار رفيقة عشوائية لكِ ✨</p>
+                </div>
+            `;
+            if(msgsDiv) msgsDiv.innerHTML = '<div style="padding:1rem; text-align:center;">✨ ابدئي بطلب رفيقة ✨</div>';
+            return;
+        }
+        
+        pairDiv.innerHTML = `
+            <div style="background: linear-gradient(135deg, #f3e8ff, #e9d5ff); border-radius: 1rem; padding: 1rem; text-align: center;">
+                <i class="fas fa-heart" style="color: #ec4899; font-size: 1.5rem;"></i>
+                <p style="margin: 0.5rem 0;">🌸 رفيقتك إلى عرفة 🌸</p>
+                <p style="font-size: 1.2rem; font-weight: bold; color: #7c3aed;">${currentUser.companionName}</p>
+                <p style="font-size: 0.7rem; color: #718096;">🤝 تبادلان الدعاء، التحفيز، الإنجازات، والرسائل اللطيفة</p>
+            </div>
+        `;
+        
+        let msgs = currentUser.messages || [];
+        msgs.sort((a,b) => new Date(b.date) - new Date(a.date));
+        
+        if(msgsDiv) {
+            if(msgs.length === 0) {
+                msgsDiv.innerHTML = '<div style="padding:1rem; text-align:center;">💕 لا توجد رسائل بعد. ابدئي بدعم رفيقتك!</div>';
+            } else {
+                msgsDiv.innerHTML = msgs.map(m => `
+                    <div class="message-item">
+                        <div class="message-sender">
+                            <i class="fas ${m.from === 'me' ? 'fa-user' : 'fa-user-friends'}"></i>
+                            <strong>${m.from === 'me' ? 'أنتِ' : currentUser.companionName}</strong>
+                        </div>
+                        <div class="message-text">${m.text}</div>
+                        <div class="message-time">${new Date(m.date).toLocaleString('ar')}</div>
+                    </div>
+                `).join('');
+            }
+        }
+    }
+
+    async function sendMessage() {
+        if(currentUser?.isTeacher) {
+            showToast("المعلمة لا يمكنها إرسال رسائل", "error");
+            return;
+        }
+        let text = document.getElementById('messageInput')?.value.trim();
+        if(!text) {
+            showToast("اكتبي رسالتك أولاً", "error");
+            return;
+        }
+        if(!currentUser.companionId || !currentUser.companionName) {
+            showToast("ليس لديك رفيقة! اطلبي رفيقة أولاً", "error");
+            return;
+        }
+        
+        currentUser.messages = currentUser.messages || [];
+        currentUser.messages.push({
+            id: Date.now(), from: 'me', text: text, type: currentMsgType, date: new Date().toISOString()
+        });
+        
+        addPoints(2, "إرسال رسالة لرفيقتك");
+        document.getElementById('messageInput').value = '';
+        renderCompanionUI();
+        await saveStudentToSheet(currentUser);
+        showToast(`✨ أرسلتِ رسالة لرفيقتك! ✨`, "success");
+    }
+
+    function getMsgTypeName(type) {
+        const types = { dua: "دعاء", motivation: "تحفيز", achievement: "إنجاز", kind: "رسالة لطيفة" };
+        return types[type] || "رسالة";
+    }
+
+    // ==================== START MEET FUNCTION (Anyone can start) ====================
+    function startGoogleMeet(meetLink) {
+        if(!meetLink) {
+            showToast("⚠️ رابط الحصة غير متوفر بعد", "error");
+            return;
+        }
+        window.open(meetLink, '_blank');
+        showToast("📹 جاري فتح جلسة Google Meet...", "success");
+    }
+
     // ==================== POINTS & ATTENDANCE ====================
     function addPoints(amount, reason) {
         if(currentUser?.isTeacher) return;
         currentUser.points = (currentUser.points || 0) + amount;
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        saveCurrentUser();
         updateDashboard();
         showToast(`+${amount} نقطة (${reason})`, "success");
         saveStudentToSheet(currentUser);
@@ -452,21 +500,24 @@
         renderSchedule();
     }
 
-    // ==================== SCHEDULE RENDERING ====================
     function renderSchedule() {
         let html = `<div class="schedule-table-wrapper"><table class="schedule-table"><thead>
-            <tr><th>اليوم</th><th>التاريخ الهجري</th><th>التاريخ الميلادي</th><th>المعلمة</th><th>موضوع الحلقة</th><th>التوقيت</th><th>تسجيل الحضور</th></tr>
+            <tr><th>اليوم</th><th>التاريخ الهجري</th><th>التاريخ الميلادي</th><th>المعلمة</th><th>موضوع الحلقة</th><th>التوقيت</th><th>بدء الجلسة</th><th>تسجيل الحضور</th></tr>
         </thead><tbody>`;
         scheduleData.forEach((s, idx) => {
             let attended = currentUser?.attended?.includes(idx);
             html += `<tr>
-                <td style="font-weight:bold; color:#7c3aed;">✨ ${s.day}</td>
-                <td>${s.hijriDate}</td><td>${s.gregorianDate}</td><td>${s.teacher}</td>
-                <td style="text-align:right;">🌿 ${s.topic}</td><td>🕰️ ${s.time}</td>
-                <td><button onclick="markAttendance(${idx})" class="meet-btn-small ${attended ? 'disabled' : ''}" ${attended ? 'disabled' : ''}>${attended ? '✅ تم الحضور' : 'تسجيل حضور (+5)'}</button></td>
+                <td style="font-weight:bold; color:#7c3aed;">✨ ${s.day}</td>⑯
+                <td>${s.hijriDate}</td>⑯
+                <td>${s.gregorianDate}</td>⑯
+                <td>${s.teacher}</td>⑯
+                <td style="text-align:right;">🌿 ${s.topic}</td>⑯
+                <td>🕰️ ${s.time}</td>⑯
+                <td><button onclick="startGoogleMeet('${s.meetLink}')" class="start-meet-btn"><i class="fas fa-video"></i> بدء الجلسة</button></td>⑯
+                <td><button onclick="markAttendance(${idx})" class="meet-btn-small ${attended ? 'disabled' : ''}" ${attended ? 'disabled' : ''}>${attended ? '✅ تم الحضور' : 'تسجيل حضور (+5)'}</button></td>⑯
             </tr>`;
         });
-        html += `</tbody></table></div>`;
+        html += `</tbody></td></div>`;
         document.getElementById('fullSchedule').innerHTML = html;
         document.getElementById('homeSchedule').innerHTML = html;
     }
@@ -552,55 +603,6 @@
         currentDailyChallenge=null;
     }
 
-    // ==================== COMPANION FUNCTIONS ====================
-    function initCompanion() { if(currentUser?.isTeacher) return; renderCompanionUI(); }
-
-    function renderCompanionUI() {
-        if(currentUser?.isTeacher) return;
-        let pairDiv = document.getElementById('pairStatus');
-        let msgsDiv = document.getElementById('messagesList');
-        if(!pairDiv) return;
-        if(!currentUser.companionName) {
-            pairDiv.innerHTML = '🕊️ ليس لديك رفيقة. اضغطي "طلب رفيقة"';
-            if(msgsDiv) msgsDiv.innerHTML = '<div style="padding:1rem;">✨ ابدئي بطلب رفيقة ✨</div>';
-            return;
-        }
-        pairDiv.innerHTML = `🌸 رفيقتك: <strong style="color:#7c3aed;">${currentUser.companionName}</strong> 🌸`;
-        let msgs = currentUser.messages || [];
-        msgs.sort((a,b)=>new Date(b.date)-new Date(a.date));
-        if(msgsDiv) {
-            if(msgs.length===0) msgsDiv.innerHTML = '<div style="padding:1rem;">💕 لا توجد رسائل بعد</div>';
-            else msgsDiv.innerHTML = msgs.map(m => `<div class="message-item"><strong>${m.from === 'me' ? 'أنتِ' : 'الرفيقة'}</strong><br>${m.text}<div style="font-size:0.7rem;">${new Date(m.date).toLocaleString()}</div></div>`).join('');
-        }
-    }
-
-    function requestCompanion() {
-        if(currentUser?.isTeacher) return;
-        let name = prompt("أدخلي اسم رفيقتك:", "");
-        if(name && name.trim()) {
-            currentUser.companionName = name.trim();
-            currentUser.companionId = Date.now();
-            saveCurrentUser();
-            renderCompanionUI();
-            saveStudentToSheet(currentUser);
-            showToast(`✨ أصبحت ${name} رفيقتك! ✨`, "success");
-        }
-    }
-
-    function sendMessage() {
-        if(currentUser?.isTeacher) return;
-        let text = document.getElementById('messageInput')?.value.trim();
-        if(!text) return showToast("اكتبي رسالة", "error");
-        if(!currentUser.companionName) return showToast("ليس لديك رفيقة!", "error");
-        currentUser.messages = currentUser.messages || [];
-        currentUser.messages.push({ from: 'me', text: text, date: new Date().toISOString(), type: currentMsgType });
-        addPoints(2, "إرسال رسالة");
-        document.getElementById('messageInput').value = '';
-        renderCompanionUI();
-        saveStudentToSheet(currentUser);
-        showToast("تم الإرسال! +2 نقطة", "success");
-    }
-
     // ==================== STATIONS FUNCTIONS ====================
     function completeStationLogic(id) {
         if(currentUser?.isTeacher) return;
@@ -648,7 +650,6 @@
         cont.innerHTML = badges.map(b => `<div class="badge-card ${b.earned ? 'earned' : ''}"><div class="badge-icon">${b.icon}</div><div>${b.name}</div>${!b.earned ? '🔒' : '✅'}</div>`).join('');
     }
 
-    // ==================== DASHBOARD & UI UPDATES ====================
     function updateDashboard() {
         if(!currentUser) return;
         if(currentUser.isTeacher) {
@@ -695,7 +696,7 @@
         currentUser = {
             id: Date.now(), name: name, email: email, points: 0, companionPoints: 0,
             completedStations: [], completedChallenges: [], lastChallenge: null,
-            companionName: "", companionId: null, messages: [], attended: [], isTeacher: false
+            companionId: null, companionName: "", companionEmail: "", messages: [], attended: [], isTeacher: false
         };
         stations.forEach(s => { s.completed = false; s.available = (s.id === 0); });
         updateStationAvailability();
@@ -731,12 +732,18 @@
         renderSchedule();
         renderBadges();
         initWheel();
-        if(!currentUser.isTeacher) initCompanion();
+        if(!currentUser.isTeacher) renderCompanionUI();
         if(currentUser.isTeacher) loadAllStudents();
     }
 
     function logoutUser() { localStorage.removeItem('currentUser'); location.reload(); }
-    function showToast(msg, type='success') { let t = document.createElement('div'); t.className = `toast-message toast-${type}`; t.innerHTML = `<i class="fas ${type==='success'?'fa-check-circle':'fa-exclamation-circle'}"></i> ${msg}`; document.body.appendChild(t); setTimeout(()=>t.remove(),3000); }
+    function showToast(msg, type='success') { 
+        let t = document.createElement('div'); 
+        t.className = `toast-message toast-${type}`; 
+        t.innerHTML = `<i class="fas ${type==='success'?'fa-check-circle':'fa-exclamation-circle'}"></i> ${msg}`; 
+        document.body.appendChild(t); 
+        setTimeout(()=>t.remove(),3000); 
+    }
 
     // ==================== NAVIGATION ====================
     document.querySelectorAll('.nav-link').forEach(l => {
@@ -750,7 +757,7 @@
             if(pg === 'stations') renderStations();
             if(pg === 'badges') renderBadges();
             if(pg === 'schedule') renderSchedule();
-            if(pg === 'companion' && !currentUser?.isTeacher) initCompanion();
+            if(pg === 'companion' && !currentUser?.isTeacher) renderCompanionUI();
             if(pg === 'teacherPanel' && currentUser?.isTeacher) loadAllStudents();
         });
     });
@@ -762,7 +769,7 @@
             currentMsgType = this.dataset.type;
         });
     });
-    document.getElementById('findCompanionBtn')?.addEventListener('click', requestCompanion);
+    document.getElementById('findCompanionBtn')?.addEventListener('click', requestRandomCompanion);
     document.getElementById('sendMsgBtn')?.addEventListener('click', sendMessage);
 
     // ==================== SESSION RESTORE & COUNTDOWN ====================
@@ -787,7 +794,7 @@
                 document.querySelectorAll('.teacher-only').forEach(el => el.style.display = 'none');
                 document.querySelectorAll('.student-only').forEach(el => el.style.display = 'flex');
                 updateDashboard(); renderStations(); renderSchedule(); renderBadges(); initWheel();
-                initCompanion();
+                renderCompanionUI();
             }
         }
     }
