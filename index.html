@@ -69,11 +69,14 @@
         .spin-button { background: linear-gradient(135deg, #7c3aed, #a855f7); color: white; }
         .surprise-button { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; margin-right: 1rem; }
         .companion-container { background: linear-gradient(145deg, #faf5ff, #f3e8ff); border-radius: 1.5rem; padding: 1.5rem; margin-bottom: 1.5rem; }
-        .messages-area { max-height: 350px; overflow-y: auto; margin-top: 1rem; background: white; border-radius: 1rem; padding: 0.75rem; }
-        .message-item { background: #f3e8ff; padding: 0.8rem; border-radius: 1rem; margin-bottom: 0.8rem; border-right: 4px solid #a855f7; transition: all 0.2s; }
-        .message-item.my-message { background: #e0e7ff; border-right-color: #4f46e5; }
-        .message-sender { font-weight: bold; color: #6b21a5; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; }
-        .message-text { font-size: 0.95rem; color: #2d3748; margin-bottom: 0.3rem; }
+        .messages-area { max-height: 400px; overflow-y: auto; margin-top: 1rem; background: white; border-radius: 1rem; padding: 0.75rem; min-height: 200px; }
+        .message-item { padding: 0.8rem; border-radius: 1rem; margin-bottom: 0.8rem; transition: all 0.2s; }
+        .message-item.my-message { background: #e0e7ff; border-right: 4px solid #4f46e5; }
+        .message-item.their-message { background: #f3e8ff; border-right: 4px solid #a855f7; }
+        .message-sender { font-weight: bold; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; }
+        .message-sender.my-color { color: #4f46e5; }
+        .message-sender.their-color { color: #6b21a5; }
+        .message-text { font-size: 0.95rem; color: #2d3748; margin-bottom: 0.3rem; word-wrap: break-word; }
         .message-time { font-size: 0.65rem; color: #a0aec0; }
         .msg-type-btn { padding: 0.4rem 1rem; border-radius: 2rem; border: 1px solid #c084fc; background: white; cursor: pointer; font-weight: 500; transition: all 0.2s; }
         .msg-type-btn.active { background: #a855f7; color: white; border-color: #a855f7; }
@@ -94,6 +97,8 @@
         .sheet-note { background: #10b981; color: white; padding: 0.8rem; border-radius: 1rem; margin-bottom: 1rem; text-align: center; font-size: 0.85rem; }
         .start-meet-btn { background: #dc2626; color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 0.5rem; cursor: pointer; font-size: 0.75rem; margin-right: 0.5rem; }
         .no-companion-message { text-align: center; padding: 1.5rem; background: #fff5f5; border-radius: 1rem; }
+        .refresh-chat-btn { background: #7c3aed; color: white; border: none; border-radius: 2rem; padding: 0.3rem 1rem; cursor: pointer; margin-right: 0.5rem; }
+        .chat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem; }
         @media (max-width: 768px) { .schedule-table { font-size: 0.7rem; } .points-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -154,21 +159,26 @@
 
         <div id="companionPage" class="page">
             <div class="companion-container">
-                <h2 style="color:#6b21a5;"><i class="fas fa-hand-holding-heart"></i> رفيقة الطريق</h2>
+                <h2><i class="fas fa-hand-holding-heart"></i> رفيقة الطريق</h2>
                 <div id="pairStatus" style="background:white; border-radius:1rem; padding:1rem; margin:1rem 0;"></div>
-                <div class="messages-area" id="messagesList"></div>
-                <div style="margin-top:1rem;">
-                    <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.5rem;">
+                <div class="chat-header">
+                    <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
                         <button class="msg-type-btn" data-type="dua">🤲 دعاء</button>
                         <button class="msg-type-btn" data-type="motivation">🔥 تحفيز</button>
                         <button class="msg-type-btn" data-type="achievement">⭐ إنجاز</button>
                         <button class="msg-type-btn" data-type="kind">💕 رسالة لطيفة</button>
-                        <button id="findCompanionBtn" style="background:#8b5cf6; color:white; border:none; border-radius:2rem; padding:0.3rem 1rem; cursor:pointer;">🎲 طلب رفيقة عشوائية</button>
                     </div>
                     <div style="display:flex; gap:0.5rem;">
-                        <input type="text" id="messageInput" class="send-input" placeholder="اكتبي رسالتك...">
-                        <button id="sendMsgBtn" class="send-btn"><i class="fas fa-paper-plane"></i> أرسلي</button>
+                        <button id="findCompanionBtn" style="background:#8b5cf6; color:white; border:none; border-radius:2rem; padding:0.3rem 1rem; cursor:pointer;">🎲 طلب رفيقة</button>
+                        <button id="refreshChatBtn" class="refresh-chat-btn"><i class="fas fa-sync-alt"></i> تحديث</button>
                     </div>
+                </div>
+                <div class="messages-area" id="messagesList">
+                    <div style="padding:1rem; text-align:center; color:#a0aec0;">✨ سيظهر هنا对话 مع رفيقتك ✨</div>
+                </div>
+                <div style="margin-top:1rem; display:flex; gap:0.5rem;">
+                    <input type="text" id="messageInput" class="send-input" placeholder="اكتبي رسالتك...">
+                    <button id="sendMsgBtn" class="send-btn"><i class="fas fa-paper-plane"></i> أرسلي</button>
                 </div>
             </div>
         </div>
@@ -213,6 +223,7 @@
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJ1t-DZBLZLwK2tkS8l8alna0NsuKwQoLFPw_1pFi_VY_f2RY9yGWO77--2h64vptq/exec";
     const TEACHER_PASSWORD = "admin1446";
     const GOOGLE_MEET_LINK = "https://meet.google.com/nki-xmmx-kfu";
+    const STORAGE_KEY_MESSAGES = "companion_messages_";
 
     const challengesList = ["🤲 تصدقي بصدقة خفية","📿 أكثري من التكبير","🕌 صلي ركعتين بخشوع","💌 أرسلي رسالة لرفيقتك","📖 راجعي وردك","🌟 قومي الليل","💝 ساعدي محتاجاً","📝 اكتبي 10 أشياء تشكرين الله"];
 
@@ -241,6 +252,25 @@
     let wheelCanvas, ctx, segments = [], currentAngle = 0, spinning = false;
     let currentMsgType = "dua";
     let messageInterval = null;
+
+    // Helper functions for message storage in localStorage (shared between partners via pairing ID)
+    function getConversationKey(companionId) {
+        return STORAGE_KEY_MESSAGES + companionId;
+    }
+
+    function loadMessagesFromStorage(companionId) {
+        const key = getConversationKey(companionId);
+        const stored = localStorage.getItem(key);
+        return stored ? JSON.parse(stored) : [];
+    }
+
+    function saveMessageToStorage(companionId, message) {
+        const key = getConversationKey(companionId);
+        const messages = loadMessagesFromStorage(companionId);
+        messages.push(message);
+        localStorage.setItem(key, JSON.stringify(messages));
+        return messages;
+    }
 
     async function loadAllStudents() {
         const tbody = document.getElementById('studentsTableBody');
@@ -302,35 +332,6 @@
         } catch(e) { console.error("خطأ في تحديث الرفيقة:", e); }
     }
 
-    async function saveMessageToSheet(message) {
-        try {
-            await fetch(SCRIPT_URL, {
-                method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: "save_message",
-                    fromEmail: message.fromEmail,
-                    fromName: message.fromName,
-                    toEmail: message.toEmail,
-                    text: message.text,
-                    type: message.type,
-                    timestamp: message.timestamp
-                })
-            });
-        } catch(e) { console.error("خطأ في حفظ الرسالة:", e); }
-    }
-
-    async function loadMessages(companionEmail) {
-        if(!companionEmail) return [];
-        try {
-            const response = await fetch(`${SCRIPT_URL}?action=get_messages&userEmail=${currentUser.email}&companionEmail=${companionEmail}`);
-            const messages = await response.json();
-            return messages || [];
-        } catch(e) {
-            console.error("خطأ في تحميل الرسائل:", e);
-            return [];
-        }
-    }
-
     async function givePoints(email, name, currentPoints) {
         let points = prompt(`⭐ أضيفي نقاط تشجيعية للطالبة ${name}\n(5-15 نقطة)`, "10");
         if(points) {
@@ -339,6 +340,8 @@
                 await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "addPoints", email: email, points: points }) });
                 showToast(`✨ +${points} نقطة للطالبة ${name}`, "success");
                 setTimeout(loadAllStudents, 1000);
+            } else {
+                showToast("⚠️ النقاط يجب أن تكون بين 5 و 15", "error");
             }
         }
     }
@@ -370,22 +373,27 @@
             const randomIndex = Math.floor(Math.random() * availableStudents.length);
             const selectedCompanion = availableStudents[randomIndex];
             if(selectedCompanion.email === currentUser.email) { showToast("حدث خطأ، حاولي مرة أخرى", "error"); return; }
-            currentUser.companionId = selectedCompanion.id || Date.now() + Math.random();
+            
+            const pairId = Date.now() + "_" + Math.random().toString(36).substr(2, 6);
+            
+            currentUser.companionId = pairId;
             currentUser.companionName = selectedCompanion.name;
             currentUser.companionEmail = selectedCompanion.email;
             
             await updateCompanionInSheet(currentUser.email, selectedCompanion.name, selectedCompanion.email);
             await updateCompanionInSheet(selectedCompanion.email, currentUser.name, currentUser.email);
             
-            // Send welcome message via the shared system
-            await saveMessageToSheet({
+            // Send welcome message to the conversation
+            const welcomeMessage = {
+                id: Date.now(),
                 fromEmail: currentUser.email,
                 fromName: currentUser.name,
                 toEmail: selectedCompanion.email,
                 text: `السلام عليكم رفيقة عرفة! 🕊️ سعيدة برحلتنا معًا إلى الله 🤍`,
                 type: "kind",
                 timestamp: new Date().toISOString()
-            });
+            };
+            saveMessageToStorage(pairId, welcomeMessage);
             
             saveCurrentUser();
             await refreshMessages();
@@ -397,11 +405,11 @@
 
     async function refreshMessages() {
         if(currentUser?.isTeacher) return;
-        if(!currentUser.companionEmail) {
+        if(!currentUser.companionId) {
             renderMessagesList([]);
             return;
         }
-        const messages = await loadMessages(currentUser.companionEmail);
+        const messages = loadMessagesFromStorage(currentUser.companionId);
         renderMessagesList(messages);
     }
 
@@ -414,16 +422,27 @@
         }
         msgsDiv.innerHTML = messages.map(m => {
             const isMyMessage = m.fromEmail === currentUser.email;
-            return `<div class="message-item ${isMyMessage ? 'my-message' : ''}">
-                        <div class="message-sender">
+            return `<div class="message-item ${isMyMessage ? 'my-message' : 'their-message'}">
+                        <div class="message-sender ${isMyMessage ? 'my-color' : 'their-color'}">
                             <i class="fas ${isMyMessage ? 'fa-user' : 'fa-user-friends'}"></i>
                             <strong>${isMyMessage ? 'أنتِ' : m.fromName}</strong>
+                            <span style="font-size:0.7rem;">${getMessageTypeIcon(m.type)}</span>
                         </div>
                         <div class="message-text">${escapeHtml(m.text)}</div>
                         <div class="message-time">${new Date(m.timestamp).toLocaleString('ar')}</div>
                     </div>`;
         }).join('');
         msgsDiv.scrollTop = msgsDiv.scrollHeight;
+    }
+
+    function getMessageTypeIcon(type) {
+        const icons = {
+            'dua': '🤲',
+            'motivation': '🔥',
+            'achievement': '⭐',
+            'kind': '💕'
+        };
+        return icons[type] || '💬';
     }
 
     function escapeHtml(text) {
@@ -436,19 +455,22 @@
         if(currentUser?.isTeacher) { showToast("المعلمة لا يمكنها إرسال رسائل", "error"); return; }
         let text = document.getElementById('messageInput')?.value.trim();
         if(!text) { showToast("اكتبي رسالتك أولاً", "error"); return; }
-        if(!currentUser.companionEmail) {
+        if(!currentUser.companionId) {
             showToast("ليس لديك رفيقة! اطلبي رفيقة أولاً", "error");
             return;
         }
         
-        await saveMessageToSheet({
+        const newMessage = {
+            id: Date.now(),
             fromEmail: currentUser.email,
             fromName: currentUser.name,
             toEmail: currentUser.companionEmail,
             text: text,
             type: currentMsgType,
             timestamp: new Date().toISOString()
-        });
+        };
+        
+        saveMessageToStorage(currentUser.companionId, newMessage);
         
         addPoints(2, "إرسال رسالة لرفيقتك");
         document.getElementById('messageInput').value = '';
@@ -477,10 +499,19 @@
     }
     
     function renderSchedule() { 
-        let html = `<div class="schedule-table-wrapper"><table class="schedule-table"><thead><tr><th>اليوم</th><th>التاريخ الهجري</th><th>التاريخ الميلادي</th><th>المعلمة</th><th>موضوع الحلقة</th><th>التوقيت</th><th>بدء الجلسة</th><th>تسجيل الحضور</th></tr></thead><tbody>`;
+        let html = `<div class="schedule-table-wrapper"><table class="schedule-table"><thead>骨头<th>اليوم</th><th>التاريخ الهجري</th><th>التاريخ الميلادي</th><th>المعلمة</th><th>موضوع الحلقة</th><th>التوقيت</th><th>بدء الجلسة</th><th>تسجيل الحضور</th></thead><tbody>`;
         scheduleData.forEach((s, idx) => { 
             let attended = currentUser?.attended?.includes(idx); 
-            html += `<tr><td style="font-weight:bold; color:#7c3aed;">✨ ${s.day}</td><td>${s.hijriDate}</td><td>${s.gregorianDate}</td><td>${s.teacher}</td><td style="text-align:right;">🌿 ${s.topic}</td><td>🕰️ ${s.time}</td><td><button onclick="startGoogleMeet('${s.meetLink}')" class="start-meet-btn">بدء الجلسة</button></td><td><button onclick="markAttendance(${idx})" class="meet-btn-small ${attended ? 'disabled' : ''}" ${attended ? 'disabled' : ''}>${attended ? '✅ تم الحضور' : 'تسجيل حضور (+5)'}</button></td></tr>`; 
+            html += `<tr>
+                    <td style="font-weight:bold; color:#7c3aed;">✨ ${s.day}</td>
+                    <td>${s.hijriDate}</td>
+                    <td>${s.gregorianDate}</td>
+                    <td>${s.teacher}</td>
+                    <td style="text-align:right;">🌿 ${s.topic}</td>
+                    <td>🕰️ ${s.time}</td>
+                    <td><button onclick="startGoogleMeet('${s.meetLink}')" class="start-meet-btn">بدء الجلسة</button></td>
+                    <td><button onclick="markAttendance(${idx})" class="meet-btn-small ${attended ? 'disabled' : ''}" ${attended ? 'disabled' : ''}>${attended ? '✅ تم الحضور' : 'تسجيل حضور (+5)'}</button></td>
+                </tr>`; 
         }); 
         html += `</tbody></table></div>`; 
         document.getElementById('fullSchedule').innerHTML = html; 
@@ -503,11 +534,10 @@
         if(!pairDiv) return;
         const hasCompanion = currentUser.companionId && currentUser.companionName && currentUser.companionName !== "" && currentUser.companionName !== currentUser.name;
         if(!hasCompanion) {
-            pairDiv.innerHTML = `<div class="no-companion-message"><i class="fas fa-user-friends" style="font-size: 2rem; color: #8b5cf6;"></i><p style="margin: 0.5rem 0;">🕊️ ليس لديك رفيقة بعد</p><p style="font-size: 0.8rem;">اضغطي "طلب رفيقة عشوائية" للانضمام إلى رحلة "رفيقتان إلى عرفة"</p></div>`;
+            pairDiv.innerHTML = `<div class="no-companion-message"><i class="fas fa-user-friends" style="font-size: 2rem; color: #8b5cf6;"></i><p style="margin: 0.5rem 0;">🕊️ ليس لديك رفيقة بعد</p><p style="font-size: 0.8rem;">اضغطي "طلب رفيقة" للانضمام إلى رحلة "رفيقتان إلى عرفة"</p><p style="font-size: 0.7rem; color:#10b981; margin-top:0.5rem;">✨ سيتم اختيار رفيقة عشوائية لكِ ✨</p></div>`;
             return;
         }
-        const companionDisplayName = (currentUser.companionName === currentUser.name) ? "جاري التحميل..." : currentUser.companionName;
-        pairDiv.innerHTML = `<div style="background: linear-gradient(135deg, #f3e8ff, #e9d5ff); border-radius: 1rem; padding: 1rem; text-align: center;"><i class="fas fa-heart" style="color: #ec4899; font-size: 1.5rem;"></i><p style="margin: 0.5rem 0;">🌸 رفيقتك إلى عرفة 🌸</p><p style="font-size: 1.2rem; font-weight: bold; color: #7c3aed;">${companionDisplayName}</p><p style="font-size: 0.7rem;">🤝 تبادلان الدعاء، التحفيز، الإنجازات، والرسائل اللطيفة</p></div>`;
+        pairDiv.innerHTML = `<div style="background: linear-gradient(135deg, #f3e8ff, #e9d5ff); border-radius: 1rem; padding: 1rem; text-align: center;"><i class="fas fa-heart" style="color: #ec4899; font-size: 1.5rem;"></i><p style="margin: 0.5rem 0;">🌸 رفيقتك إلى عرفة 🌸</p><p style="font-size: 1.2rem; font-weight: bold; color: #7c3aed;">${currentUser.companionName}</p><p style="font-size: 0.7rem;">🤝 تبادلان الدعاء، التحفيز، الإنجازات، والرسائل اللطيفة</p></div>`;
     }
     
     function updateDashboard() { 
@@ -586,13 +616,12 @@
             document.querySelectorAll('.teacher-only').forEach(el => el.style.display = 'none'); 
             document.querySelectorAll('.student-only').forEach(el => el.style.display = 'flex'); 
             await refreshMessages();
-            // Start auto-refresh every 3 seconds
             if(messageInterval) clearInterval(messageInterval);
             messageInterval = setInterval(async () => {
-                if(currentUser && !currentUser.isTeacher && currentUser.companionEmail) {
+                if(currentUser && !currentUser.isTeacher && currentUser.companionId) {
                     await refreshMessages();
                 }
-            }, 3000);
+            }, 2000);
         } 
         updateDashboard(); 
         renderStations(); 
@@ -644,8 +673,12 @@
         }); 
     });
     
+    // Set default active message type
+    document.querySelector('.msg-type-btn[data-type="dua"]')?.classList.add('active');
+    
     document.getElementById('findCompanionBtn')?.addEventListener('click', requestRandomCompanion);
     document.getElementById('sendMsgBtn')?.addEventListener('click', sendMessage);
+    document.getElementById('refreshChatBtn')?.addEventListener('click', refreshMessages);
     
     function restoreSession() { 
         let saved = localStorage.getItem('currentUser'); 
@@ -680,10 +713,10 @@
                 refreshMessages();
                 if(messageInterval) clearInterval(messageInterval);
                 messageInterval = setInterval(async () => {
-                    if(currentUser && !currentUser.isTeacher && currentUser.companionEmail) {
+                    if(currentUser && !currentUser.isTeacher && currentUser.companionId) {
                         await refreshMessages();
                     }
-                }, 3000);
+                }, 2000);
             } 
         } 
     }
