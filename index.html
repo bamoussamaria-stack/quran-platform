@@ -9,7 +9,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
             font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
             background: linear-gradient(135deg, #6b21a5 0%, #9333ea 100%);
@@ -32,11 +36,15 @@
         }
         .logo-area { display: flex; align-items: center; gap: 1rem; }
         .logo-icon {
-            width: 45px; height: 45px;
+            width: 45px;
+            height: 45px;
             background: linear-gradient(135deg, #7c3aed, #a855f7);
             border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.5rem; color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
         }
         .logo-text h2 { font-size: 1.2rem; color: #5b21b6; margin: 0; }
         .logo-text p { font-size: 0.7rem; color: #7c3aed; margin: 0; }
@@ -273,13 +281,13 @@
 <script>
     // ========== إعدادات Google Sheets ==========
     // ⚠️ استبدلي هذا الرابط بالرابط الجديد الذي حصلتِ عليه من Apps Script
-   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJ1t-DZBLZLwK2tkS8l8alna0NsuKwQoLFPw_1pFi_VY_f2RY9yGWO77--2h64vptq/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJ1t-DZBLZLwK2tkS8l8alna0NsuKwQoLFPw_1pFi_VY_f2RY9yGWO77--2h64vptq/exec";
     const TEACHER_PASSWORD = "admin1446";
     const GOOGLE_MEET_LINK = "https://meet.google.com/nki-xmmx-kfu";
     const SHEET_ID = "1_NnuHS_YCoz_Pypet3TCVM1RSYBiH7zf2kTWam-mEdc";
     const API_KEY = "AIzaSyDpa61C-YTaC9FUcF2iS9O5AHP6GVIAS5w";
     
-    const challengesList = ["تصدقي بصدقة","أكثري من التكبير","صلي ركعتين","أرسلي رسالة لرفيقتك","راجعي وردك","قومي الليل","ساعدي محتاجاً","اكتبي 10 أشياء تشكرين الله"];
+    const challengesList = ["🤲 تصدقي بصدقة","📿 أكثري من التكبير","🕌 صلي ركعتين بخشوع","💌 أرسلي رسالة دعم لرفيقتك","📖 راجعي وردك من القرآن","🌟 قومي الليل ولو بركعتين","💝 ساعدي شخصاً محتاجاً","📝 اكتبي 10 أشياء تشكرين الله عليها","🌙 صومي اليوم لله","🤲 ادعي لجميع المسلمات بظهر الغيب"];
     
     let stations = [
         { id:0, title:"🌱 المحطة التمهيدية", badge:"وسام البداية", completed:false, available:true, icon:"🌱" },
@@ -334,15 +342,15 @@
                 html += `<tr>
                     <td><strong>${name}</strong></td>
                     <td>${email}</td>
-                    <td>${stationsCount}/5</td>
+                    <td>${stationsCount}/5</td><tr>
                     <td><span style="font-size:1.2rem; font-weight:bold; color:#6b21a5;">${points}</span></td>
-                    <td style="color:#7c3aed; font-weight:bold;">👭 ${companionName}</td>
+                    <td style="color:#7c3aed; font-weight:bold;">👭 ${companionName}</td><td>
                     <td>${lastUpdate}</td>
                     <td class="teacher-actions">
                         <button class="give-points-btn" onclick="givePointsToStudent('${email}', '${name}', ${points})"><i class="fas fa-gift"></i> تشجيع</button>
                         <button class="delete-student-btn" onclick="deleteStudentFromSheet('${email}', '${name}')"><i class="fas fa-trash-alt"></i> حذف</button>
-                    </td>
-                </tr>`;
+                     </td>
+                 `;
             }
             tbody.innerHTML = html;
             showToast(`✅ تم تحميل ${rows.length - 1} طالبة`, "success");
@@ -449,16 +457,100 @@
                 <td>${s.meetLink ? `<button onclick="markAttendance(${idx})" class="meet-btn-small ${attended ? 'disabled' : ''}" ${attended ? 'disabled' : ''}>${attended ? '✅ تم' : 'تسجيل (+5)'}</button>` : '---'}</td>
             </tr>`;
         });
-        html += `</tbody><td></div>`;
+        html += `</tbody></table></div>`;
         document.getElementById('fullSchedule').innerHTML = html;
         document.getElementById('homeSchedule').innerHTML = html;
     }
     
-    function initWheel() { wheelCanvas = document.getElementById('wheelCanvas'); if(!wheelCanvas) return; ctx = wheelCanvas.getContext('2d'); segments = challengesList.slice(0,8); drawWheel(); }
-    function drawWheel() { if(!ctx) return; const size=400,cx=200,cy=200,rad=185,step=Math.PI*2/segments.length; ctx.clearRect(0,0,size,size); for(let i=0;i<segments.length;i++){ let start=currentAngle+i*step,end=start+step; ctx.beginPath(); ctx.fillStyle=['#8b5cf6','#a78bfa','#c4b5fd','#ddd6fe','#ede9fe','#f3e8ff','#faf5ff','#ffffff'][i%8]; ctx.moveTo(cx,cy); ctx.arc(cx,cy,rad,start,end); ctx.fill(); ctx.save(); ctx.fillStyle='#5b21b6'; ctx.font='bold 11px Cairo'; ctx.translate(cx,cy); ctx.rotate(start+step/2); ctx.fillText(segments[i].substring(0,5), rad/2.5,5); ctx.restore(); } ctx.beginPath(); ctx.moveTo(cx-12,cy-rad+5); ctx.lineTo(cx,cy-rad-8); ctx.lineTo(cx+12,cy-rad+5); ctx.fillStyle='#e53e3e'; ctx.fill(); }
-    function spinWheel() { if(spinning) return; spinning=true; const resultDiv=document.getElementById('challengeResult'); resultDiv.style.display='none'; const startTime=Date.now(), startAngle=currentAngle, spins=Math.floor(Math.random()*16)+15, totalRot=Math.PI*2*spins; function animate(){ let elapsed=Date.now()-startTime, prog=Math.min(1,elapsed/2000), ease=1-Math.pow(1-prog,3); currentAngle=(startAngle+totalRot*ease)%(Math.PI*2); drawWheel(); if(prog<1) requestAnimationFrame(animate); else{ let stepAngle=Math.PI*2/segments.length, pointerAngle=-Math.PI/2, diff=(pointerAngle-currentAngle+Math.PI*2)%(Math.PI*2), idx=Math.floor(diff/stepAngle)%segments.length; currentDailyChallenge=segments[idx]; document.getElementById('challengeDisplay').innerHTML=currentDailyChallenge; resultDiv.style.display='block'; spinning=false; showToast("تم اختيار تحديك!", "success"); } } animate(); }
-    function openSurprise() { let rand=Math.floor(Math.random()*challengesList.length); currentDailyChallenge=challengesList[rand]; document.getElementById('challengeDisplay').innerHTML="🎁 "+currentDailyChallenge; document.getElementById('challengeResult').style.display='block'; showToast("مفاجأة!", "success"); }
-    function completeDailyChallenge() { if(!currentDailyChallenge) return showToast("لا يوجد تحدي","error"); if(currentUser?.isTeacher) return showToast("للمعلمات فقط","error"); let today=new Date().toDateString(); if(currentUser.lastChallengeDate===today) return showToast("أنجزتِ اليوم!","error"); currentUser.completedChallenges=currentUser.completedChallenges||[]; currentUser.completedChallenges.push({challenge:currentDailyChallenge,date:today}); currentUser.lastChallengeDate=today; addPoints(10, "تحدي يومي"); document.getElementById('challengeResult').style.display='none'; currentDailyChallenge=null; }
+    // 🔧 إصلاح العجلة
+    function initWheel() {
+        wheelCanvas = document.getElementById('wheelCanvas');
+        if (!wheelCanvas) return;
+        ctx = wheelCanvas.getContext('2d');
+        segments = challengesList.slice(0, 8);
+        drawWheel();
+    }
+
+    function drawWheel() {
+        if (!ctx || !wheelCanvas) return;
+        const size = 400, cx = 200, cy = 200, radius = 185, step = Math.PI * 2 / segments.length;
+        ctx.clearRect(0, 0, size, size);
+        for (let i = 0; i < segments.length; i++) {
+            let start = currentAngle + i * step, end = start + step;
+            ctx.beginPath();
+            ctx.fillStyle = ['#8b5cf6', '#a78bfa', '#c4b5fd', '#ddd6fe', '#ede9fe', '#f3e8ff', '#faf5ff', '#ffffff'][i % 8];
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, radius, start, end);
+            ctx.fill();
+            ctx.save();
+            ctx.fillStyle = '#5b21b6';
+            ctx.font = 'bold 12px Cairo';
+            ctx.translate(cx, cy);
+            ctx.rotate(start + step / 2);
+            ctx.fillText(segments[i].substring(0, 6), radius / 2.3, 5);
+            ctx.restore();
+        }
+        ctx.beginPath();
+        ctx.moveTo(cx - 12, cy - radius + 5);
+        ctx.lineTo(cx, cy - radius - 8);
+        ctx.lineTo(cx + 12, cy - radius + 5);
+        ctx.fillStyle = '#e53e3e';
+        ctx.fill();
+    }
+
+    function spinWheel() {
+        if (spinning) return;
+        spinning = true;
+        const resultDiv = document.getElementById('challengeResult');
+        resultDiv.style.display = 'none';
+        const startTime = Date.now();
+        const startAngle = currentAngle;
+        const spins = Math.floor(Math.random() * 16) + 15;
+        const totalRotation = Math.PI * 2 * spins;
+        
+        function animate() {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(1, elapsed / 2000);
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+            currentAngle = (startAngle + totalRotation * easeOut) % (Math.PI * 2);
+            drawWheel();
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                const stepAngle = Math.PI * 2 / segments.length;
+                const pointerAngle = -Math.PI / 2;
+                let angleDiff = (pointerAngle - currentAngle + Math.PI * 2) % (Math.PI * 2);
+                let selectedIndex = Math.floor(angleDiff / stepAngle) % segments.length;
+                currentDailyChallenge = segments[selectedIndex];
+                document.getElementById('challengeDisplay').innerHTML = currentDailyChallenge;
+                resultDiv.style.display = 'block';
+                spinning = false;
+                showToast("✨ تم اختيار تحديك! أكملية لتحصلي على 10 نقاط ✨", "success");
+            }
+        }
+        animate();
+    }
+
+    function openSurprise() {
+        let randomIndex = Math.floor(Math.random() * challengesList.length);
+        currentDailyChallenge = challengesList[randomIndex];
+        document.getElementById('challengeDisplay').innerHTML = "🎁 " + currentDailyChallenge;
+        document.getElementById('challengeResult').style.display = 'block';
+        showToast("مفاجأة! تحدٍ جديد لكِ", "success");
+    }
+    
+    function completeDailyChallenge() { 
+        if(!currentDailyChallenge) return showToast("لا يوجد تحدي","error"); 
+        if(currentUser?.isTeacher) return showToast("للمعلمات فقط","error"); 
+        let today=new Date().toDateString(); 
+        if(currentUser.lastChallengeDate===today) return showToast("أنجزتِ اليوم!","error"); 
+        currentUser.completedChallenges=currentUser.completedChallenges||[]; 
+        currentUser.completedChallenges.push({challenge:currentDailyChallenge,date:today}); 
+        currentUser.lastChallengeDate=today; 
+        addPoints(10, "تحدي يومي"); 
+        document.getElementById('challengeResult').style.display='none'; 
+        currentDailyChallenge=null; 
+    }
     
     function initCompanion() { if(currentUser?.isTeacher) return; if(!currentUser.companionId) currentUser.companionId=null; if(!currentUser.messages) currentUser.messages=[]; renderCompanionUI(); }
     function renderCompanionUI() { if(currentUser?.isTeacher) return; let pairDiv=document.getElementById('pairStatus'); let msgsDiv=document.getElementById('messagesList'); if(!pairDiv) return; if(!currentUser.companionId){ pairDiv.innerHTML='🕊️ ليس لديك رفيقة. اضغطي "طلب رفيقة"'; if(msgsDiv) msgsDiv.innerHTML='<div style="padding:1rem;">✨ ابدئي بطلب رفيقة ✨</div>'; return; } let comp=allUsers.find(u=>u.id===currentUser.companionId); if(!comp){ currentUser.companionId=null; saveAllData(); renderCompanionUI(); return; } pairDiv.innerHTML=`🌸 رفيقتك: <strong style="color:#7c3aed;">${comp.name}</strong> 🌸`; let allMsgs=[...(currentUser.messages||[]),...(comp.messages||[]).filter(m=>m.toId===currentUser.id)]; allMsgs.sort((a,b)=>new Date(b.date)-new Date(a.date)); if(msgsDiv){ if(allMsgs.length===0) msgsDiv.innerHTML='<div style="padding:1rem;">💕 لا توجد رسائل بعد</div>'; else msgsDiv.innerHTML=allMsgs.map(m=>{ let sender=m.fromId===currentUser.id?"أنتِ":comp.name; return `<div class="message-item"><strong>${sender}</strong><br>${m.text}<div style="font-size:0.7rem;">${new Date(m.date).toLocaleString()}</div></div>`; }).join(''); } }
@@ -574,7 +666,9 @@
         document.getElementById('mainApp').style.display = 'block';
         if(currentUser.isTeacher) { document.querySelectorAll('.teacher-only').forEach(el => el.style.display = 'flex'); document.querySelectorAll('.student-only').forEach(el => el.style.display = 'flex'); }
         else { document.querySelectorAll('.teacher-only').forEach(el => el.style.display = 'none'); document.querySelectorAll('.student-only').forEach(el => el.style.display = 'flex'); }
-        updateDashboard(); renderStations(); renderSchedule(); renderBadges(); initWheel();
+        updateDashboard(); renderStations(); renderSchedule(); renderBadges(); 
+        // تأكدي من تهيئة العجلة بعد تسجيل الدخول
+        initWheel();
         if(!currentUser.isTeacher) initCompanion();
         if(currentUser.isTeacher) loadAllStudentsFromSheets();
         showToast(`مرحباً ${currentUser.name}${currentUser.isTeacher ? ' (معلمة)' : ''}!`, "success");
